@@ -1,0 +1,216 @@
+[
+  {
+    "category": "Natural Sciences",
+    "fields": [
+      "Physics",
+      "Chemistry",
+      "Biology",
+      "Astronomy",
+      "Geology",
+      "Ecology",
+      "Environmental Science",
+      "Marine Biology",
+      "Zoology",
+      "Botany",
+      "Paleontology",
+      "Meteorology",
+      "Oceanography",
+      "Astrophysics",
+      "Biophysics",
+      "Microbiology",
+      "Genomics",
+      "Quantum Mechanics"
+    ]
+  },
+  {
+    "category": "Social Sciences",
+    "fields": [
+      "Anthropology",
+      "Sociology",
+      "Psychology",
+      "Economics",
+      "Political Science",
+      "Archaeology",
+      "Geography",
+      "Linguistics",
+      "Criminology",
+      "Ethnography",
+      "Demography",
+      "International Relations",
+      "Cognitive Science",
+      "Urban Studies",
+      "Public Policy",
+      "Gender Studies",
+      "Cultural Anthropology"
+    ]
+  },
+  {
+    "category": "Humanities",
+    "fields": [
+      "Philosophy",
+      "History",
+      "Literature",
+      "Art History",
+      "Religious Studies",
+      "Cultural Studies",
+      "Comparative Literature",
+      "Musicology",
+      "Theatre Studies",
+      "Film Studies",
+      "Classics",
+      "Theology",
+      "Ethics",
+      "Creative Writing",
+      "Linguistic Philosophy",
+      "Aesthetics",
+      "Folklore"
+    ]
+  },
+  {
+    "category": "Engineering and Technology",
+    "fields": [
+      "Computer Science",
+      "Mechanical Engineering",
+      "Electrical Engineering",
+      "Civil Engineering",
+      "Chemical Engineering",
+      "Aerospace Engineering",
+      "Robotics",
+      "Artificial Intelligence",
+      "Data Science",
+      "Biotechnology",
+      "Nanotechnology",
+      "Software Engineering",
+      "Cybersecurity",
+      "Embedded Systems",
+      "Blockchain Technology",
+      "Machine Learning",
+      "Internet of Things (IoT)",
+      "Quantum Computing"
+    ]
+  },
+  {
+    "category": "Medical Sciences",
+    "fields": [
+      "Medicine",
+      "Neuroscience",
+      "Pharmacology",
+      "Dentistry",
+      "Veterinary Science",
+      "Genetics",
+      "Immunology",
+      "Epidemiology",
+      "Public Health",
+      "Biomedical Engineering",
+      "Oncology",
+      "Psychiatry",
+      "Pediatrics",
+      "Pathology",
+      "Anesthesiology",
+      "Geriatrics",
+      "Dermatology",
+      "Radiology"
+    ]
+  },
+  {
+    "category": "Arts",
+    "fields": [
+      "Visual Arts",
+      "Performing Arts",
+      "Graphic Design",
+      "Architecture",
+      "Music Composition",
+      "Sculpture",
+      "Photography",
+      "Digital Art",
+      "Animation",
+      "Fashion Design",
+      "Industrial Design",
+      "Interior Design",
+      "Calligraphy",
+      "Illustration",
+      "Printmaking",
+      "Cinematography",
+      "Typography"
+    ]
+  },
+  {
+    "category": "Business and Management",
+    "fields": [
+      "Business Administration",
+      "Marketing",
+      "Finance",
+      "Accounting",
+      "Entrepreneurship",
+      "International Business",
+      "Supply Chain Management",
+      "Human Resources",
+      "Management Consulting",
+      "Business Analytics",
+      "Organizational Behavior",
+      "Strategic Management",
+      "E-commerce",
+      "Investment Banking",
+      "Operations Management",
+      "Real Estate Management"
+    ]
+  },
+  {
+    "category": "Environmental and Sustainability",
+    "fields": [
+      "Sustainable Development",
+      "Environmental Engineering",
+      "Climate Science",
+      "Conservation Biology",
+      "Renewable Energy",
+      "Urban Planning",
+      "Environmental Policy",
+      "Waste Management",
+      "Green Technology",
+      "Ecological Economics",
+      "Environmental Education",
+      "Biodiversity Conservation",
+      "Circular Economy",
+      "Eco-Tourism"
+    ]
+  },
+  {
+    "category": "Law and Legal Studies",
+    "fields": [
+      "Constitutional Law",
+      "International Law",
+      "Criminal Law",
+      "Corporate Law",
+      "Human Rights Law",
+      "Environmental Law",
+      "Intellectual Property Law",
+      "Maritime Law",
+      "Tax Law",
+      "Labor Law",
+      "Comparative Law",
+      "Cyber Law",
+      "Immigration Law",
+      "Contract Law",
+      "Forensic Law"
+    ]
+  },
+  {
+    "category": "Communication and Media",
+    "fields": [
+      "Journalism",
+      "Mass Communication",
+      "Media Studies",
+      "Public Relations",
+      "Digital Media",
+      "Broadcasting",
+      "Advertising",
+      "Communication Design",
+      "Social Media Strategy",
+      "Content Creation",
+      "Multimedia Journalism",
+      "Film Production",
+      "Corporate Communication",
+      "Visual Storytelling"
+    ]
+  }
+]

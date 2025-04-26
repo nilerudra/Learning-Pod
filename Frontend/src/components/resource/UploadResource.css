@@ -1,0 +1,56 @@
+/* UploadResource.css */
+
+/* Input field styles */
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* File input styles */
+.file-input {
+  display: block;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #f4f4f4;
+  color: #333;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* File input hover state */
+.file-input:hover {
+  background-color: #d2d2d2;
+}
+
+/* Button styles */
+.upload-button {
+  background-color: #2d3e54;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  text-align: center; /* Centered text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Inline block for better alignment */
+  font-size: 16px; /* Font size */
+  margin: 4px 2px; /* Margin around the button */
+  cursor: pointer; /* Pointer cursor on hover */
+  border-radius: 4px; /* Rounded corners */
+  transition: background-color 0.3s ease; /* Smooth background color transition */
+}
+
+/* Button hover state */
+.upload-button:hover {
+  background-color: #37495f;
+}
+
+/* Button disabled state */
+.upload-button:disabled {
+  background-color: #ccc; /* Gray background when disabled */
+  cursor: not-allowed; /* Change cursor to indicate disabled state */
+}

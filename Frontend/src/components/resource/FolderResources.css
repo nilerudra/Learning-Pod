@@ -1,0 +1,52 @@
+.folder-resources-page {
+  padding: 40px;
+  background-color: #f4f4f9;
+  min-height: 100vh;
+}
+
+.folder-resources-page h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.resources {
+  padding: 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.resource-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: fit-content;
+  text-align: center;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.resource-details h3 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.file-icon {
+  font-size: 2.5rem;
+  color: #2d3e54;
+  transition: color 0.2s ease-in-out;
+}
+
+.file-icon:hover {
+  color: #394a60;
+  cursor: pointer;
+}

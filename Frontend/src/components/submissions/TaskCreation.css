@@ -1,0 +1,78 @@
+.task-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+.task-container h1,
+.task-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.task-form {
+  margin-bottom: 20px;
+}
+
+.task-form div {
+  margin-bottom: 10px;
+}
+
+.task-container label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.task-container input[type="text"],
+.task-container input[type="date"],
+.task-container textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button.add-task-btn {
+  padding: 10px 15px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button.add-task-btn:hover {
+  background-color: #218838;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.task-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.task-list li {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.task-list strong {
+  display: block;
+  font-size: 18px;
+}
+
+.task-list small {
+  display: block;
+  color: gray;
+}

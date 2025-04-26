@@ -1,0 +1,168 @@
+/* ResourceList.css */
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+
+.folder-section {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  margin-bottom: 10px;
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  margin: 20px;
+  cursor: pointer;
+}
+
+.folder-icon {
+  margin-right: 10px;
+}
+
+.folder-name {
+  font-size: 18px;
+}
+
+.folder-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px;
+  background-color: #e9ecef;
+  border-bottom: 1px solid #ddd;
+}
+
+.folder-icon {
+  font-size: 1.5em;
+  margin-right: 10px;
+}
+
+.folder-title {
+  font-size: 1.5em;
+  margin: 0;
+  color: #333;
+}
+
+.resource-cards {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.resource-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+
+.resource-details h3 {
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.resource-details p {
+  color: #555;
+}
+
+.resource-details a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.resource-details a:hover {
+  text-decoration: underline;
+}
+.resource-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.resource-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.resource-icon {
+  margin-bottom: 10px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.folder-link,
+.resource-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.folder-name,
+.resource-name {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.resource-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.folder-item,
+.resource-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.resource-icon,
+.folder-icon {
+  margin-bottom: 10px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.folder-link,
+.resource-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.folder-name,
+.resource-name {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
