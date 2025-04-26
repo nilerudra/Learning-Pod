@@ -12,7 +12,7 @@ const Roadmap = () => {
   const navigate = useNavigate();
 
   const USER_ID = localStorage.getItem("userId");
-  const API_URL = `http://localhost:8000/api/roadmap/${USER_ID}`;
+  const API_URL = `https://learning-pod-e3wo.onrender.com/api/roadmap/${USER_ID}`;
 
   useEffect(() => {
     const fetchRoadmap = async () => {
@@ -26,11 +26,13 @@ const Roadmap = () => {
         }
 
         setRoadmapData(response.data[0].roadmap);
-        
+
         // Initialize quiz eligibility
         const eligibility = {};
         response.data[0].roadmap.phases.forEach((phase, index) => {
-          const completed = phase.completedSteps ? phase.completedSteps.length : 0;
+          const completed = phase.completedSteps
+            ? phase.completedSteps.length
+            : 0;
           const total = phase.actionableSteps.length;
           eligibility[index] = completed === total;
         });
@@ -68,10 +70,11 @@ const Roadmap = () => {
     }
 
     setRoadmapData(updatedRoadmap);
-    
+
     // Update quiz eligibility
     const newEligibility = { ...quizEligibility };
-    newEligibility[phaseIndex] = phase.completedSteps.length === phase.actionableSteps.length;
+    newEligibility[phaseIndex] =
+      phase.completedSteps.length === phase.actionableSteps.length;
     setQuizEligibility(newEligibility);
   };
 
@@ -100,30 +103,32 @@ const Roadmap = () => {
       ? Math.round((totalCompletedSteps / totalSteps) * 100)
       : 0;
   };
-  
+
   // Navigation handlers
   const handleCreatePod = (phaseIndex) => {
     console.log(`Creating pod for phase ${phaseIndex}`);
     // Implementation for pod creation
     // This would typically navigate to a pod creation page or open a modal
-    alert(`Creating learning pod for: ${roadmapData.phases[phaseIndex].phaseName}`);
+    alert(
+      `Creating learning pod for: ${roadmapData.phases[phaseIndex].phaseName}`
+    );
   };
-  
+
   const handleLearnNow = (phaseIndex) => {
-    navigate(`/learn/${phaseIndex}`, { 
-      state: { 
+    navigate(`/learn/${phaseIndex}`, {
+      state: {
         phaseData: roadmapData.phases[phaseIndex],
-        phaseName: roadmapData.phases[phaseIndex].phaseName 
-      } 
+        phaseName: roadmapData.phases[phaseIndex].phaseName,
+      },
     });
   };
-  
+
   const handleTakeQuiz = (phaseIndex) => {
-    navigate(`/quiz/${phaseIndex}`, { 
-      state: { 
+    navigate(`/quiz/${phaseIndex}`, {
+      state: {
         phaseData: roadmapData.phases[phaseIndex],
-        phaseName: roadmapData.phases[phaseIndex].phaseName 
-      } 
+        phaseName: roadmapData.phases[phaseIndex].phaseName,
+      },
     });
   };
 
@@ -227,7 +232,7 @@ const Roadmap = () => {
                 </li>
               ))}
             </ul>
-            
+
             {/* Quiz Button - Only show if all checkboxes are checked */}
             {quizEligibility[phaseIndex] && (
               <div className="mt-4 flex justify-end">

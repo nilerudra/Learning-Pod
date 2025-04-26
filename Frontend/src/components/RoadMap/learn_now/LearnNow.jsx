@@ -40,12 +40,15 @@ const LearnNow = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:8000/api/learning-content/${phaseId}`, {
-          params: {
-            phaseName: phaseName,
-            userId: userId
+        const response = await axios.get(
+          `https://learning-pod-e3wo.onrender.com/api/learning-content/${phaseId}`,
+          {
+            params: {
+              phaseName: phaseName,
+              userId: userId,
+            },
           }
-        });
+        );
         setLearningContent(response.data);
         setLoading(false);
       } catch (err) {
@@ -68,7 +71,7 @@ const LearnNow = () => {
   const toggleSectionCollapse = (sectionId) => {
     setCollapsedSections((prev) => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      [sectionId]: !prev[sectionId],
     }));
   };
 
@@ -87,7 +90,7 @@ const LearnNow = () => {
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: "a4"
+      format: "a4",
     });
 
     // Set font and styling
@@ -143,7 +146,9 @@ const LearnNow = () => {
     });
 
     // Save the PDF
-    doc.save(`learning-content-${phaseName.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+    doc.save(
+      `learning-content-${phaseName.replace(/\s+/g, "-").toLowerCase()}.pdf`
+    );
   };
 
   // Mock exercises
@@ -151,19 +156,21 @@ const LearnNow = () => {
     {
       id: 1,
       title: "Build a Simple Web Page",
-      description: "Create a web page using HTML and CSS to practice structuring and styling content.",
+      description:
+        "Create a web page using HTML and CSS to practice structuring and styling content.",
       difficulty: "Beginner",
       estimatedTime: "30 mins",
-      relatedContent: ["### HTML", "### CSS"]
+      relatedContent: ["### HTML", "### CSS"],
     },
     {
       id: 2,
       title: "Interactive Button with JavaScript",
-      description: "Add interactivity to a button using JavaScript event listeners.",
+      description:
+        "Add interactivity to a button using JavaScript event listeners.",
       difficulty: "Intermediate",
       estimatedTime: "45 mins",
-      relatedContent: ["### JavaScript"]
-    }
+      relatedContent: ["### JavaScript"],
+    },
   ];
 
   // Mock notes
@@ -172,14 +179,16 @@ const LearnNow = () => {
       id: 1,
       title: "HTML Cheatsheet",
       topic: "HTML",
-      content: "Key HTML tags: `<div>`, `<p>`, `<a>`, `<img>`. Use semantic elements like `<header>`, `<footer>` for accessibility."
+      content:
+        "Key HTML tags: `<div>`, `<p>`, `<a>`, `<img>`. Use semantic elements like `<header>`, `<footer>` for accessibility.",
     },
     {
       id: 2,
       title: "CSS Best Practices",
       topic: "CSS",
-      content: "Use relative units (%, vw, rem) for responsive design. Avoid !important for better maintainability."
-    }
+      content:
+        "Use relative units (%, vw, rem) for responsive design. Avoid !important for better maintainability.",
+    },
   ];
 
   if (loading) {
@@ -196,7 +205,9 @@ const LearnNow = () => {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold">{error || "No content available"}</h1>
+          <h1 className="text-3xl font-bold">
+            {error || "No content available"}
+          </h1>
           <button
             onClick={() => navigate("/roadmap")}
             className="mt-4 px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition"
@@ -210,13 +221,20 @@ const LearnNow = () => {
 
   // Custom Markdown renderers
   const markdownRenderers = {
-    h1: ({ children }) => <h1 className="text-3xl font-bold text-white mt-6">{children}</h1>,
-    h2: ({ children }) => <h2 className="text-2xl font-semibold text-white mt-6">{children}</h2>,
+    h1: ({ children }) => (
+      <h1 className="text-3xl font-bold text-white mt-6">{children}</h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className="text-2xl font-semibold text-white mt-6">{children}</h2>
+    ),
     h3: ({ children }) => {
       const sectionId = children.toString().toLowerCase().replace(/\s+/g, "-");
       return (
         <div className="flex justify-between items-center mt-4">
-          <h3 className="text-xl font-semibold text-white cursor-pointer" onClick={() => toggleSectionCollapse(sectionId)}>
+          <h3
+            className="text-xl font-semibold text-white cursor-pointer"
+            onClick={() => toggleSectionCollapse(sectionId)}
+          >
             {children}
           </h3>
           <button
@@ -233,17 +251,21 @@ const LearnNow = () => {
       );
     },
     p: ({ children }) => <p className="text-gray-300 mt-2">{children}</p>,
-    ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 text-gray-300">{children}</ul>,
+    ul: ({ children }) => (
+      <ul className="list-disc pl-5 space-y-1 text-gray-300">{children}</ul>
+    ),
     code: ({ node, inline, className, children, ...props }) =>
       inline ? (
-        <code className="bg-gray-800 text-red-400 px-1 rounded">{children}</code>
+        <code className="bg-gray-800 text-red-400 px-1 rounded">
+          {children}
+        </code>
       ) : (
         <pre className="bg-gray-800 p-4 rounded mt-2">
           <code className={className} {...props}>
             {children}
           </code>
         </pre>
-      )
+      ),
   };
 
   return (
@@ -279,7 +301,9 @@ const LearnNow = () => {
         <div className="flex border-b border-gray-700 mb-6">
           <button
             className={`px-4 py-2 font-medium ${
-              activeTab === "content" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"
+              activeTab === "content"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-gray-400"
             }`}
             onClick={() => setActiveTab("content")}
           >
@@ -287,7 +311,9 @@ const LearnNow = () => {
           </button>
           <button
             className={`px-4 py-2 font-medium ${
-              activeTab === "exercises" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"
+              activeTab === "exercises"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-gray-400"
             }`}
             onClick={() => setActiveTab("exercises")}
           >
@@ -295,7 +321,9 @@ const LearnNow = () => {
           </button>
           <button
             className={`px-4 py-2 font-medium ${
-              activeTab === "notes" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400"
+              activeTab === "notes"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-gray-400"
             }`}
             onClick={() => setActiveTab("notes")}
           >
@@ -328,47 +356,53 @@ const LearnNow = () => {
               </div>
 
               {/* Recommended Courses */}
-              {learningContent.courses && learningContent.courses.length > 0 && (
-                <div className="mt-10">
-                  <h2 className="text-xl font-semibold mb-4">Recommended Courses</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {learningContent.courses.map((course, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="p-4 border border-gray-700 rounded-lg bg-gray-800 hover:shadow-lg transition-shadow"
-                      >
-                        <div className="flex items-start">
-                          <BookOpen className="w-5 h-5 text-blue-400 mr-3 mt-1" />
-                          <div>
-                            <h3 className="font-semibold text-lg bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent">
-                              {course.title}
-                            </h3>
-                            <p className="text-gray-400 text-sm mt-1">
-                              {course.platform} | {course.duration} | {course.price}
-                            </p>
-                            <p className="text-gray-300 text-sm mt-2">{course.description}</p>
-                            <div className="flex items-center mt-3 text-sm text-gray-400">
-                              <Clock className="w-4 h-4 mr-1" />
-                              <span>{course.duration}</span>
+              {learningContent.courses &&
+                learningContent.courses.length > 0 && (
+                  <div className="mt-10">
+                    <h2 className="text-xl font-semibold mb-4">
+                      Recommended Courses
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {learningContent.courses.map((course, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="p-4 border border-gray-700 rounded-lg bg-gray-800 hover:shadow-lg transition-shadow"
+                        >
+                          <div className="flex items-start">
+                            <BookOpen className="w-5 h-5 text-blue-400 mr-3 mt-1" />
+                            <div>
+                              <h3 className="font-semibold text-lg bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent">
+                                {course.title}
+                              </h3>
+                              <p className="text-gray-400 text-sm mt-1">
+                                {course.platform} | {course.duration} |{" "}
+                                {course.price}
+                              </p>
+                              <p className="text-gray-300 text-sm mt-2">
+                                {course.description}
+                              </p>
+                              <div className="flex items-center mt-3 text-sm text-gray-400">
+                                <Clock className="w-4 h-4 mr-1" />
+                                <span>{course.duration}</span>
+                              </div>
+                              <a
+                                href={course.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block mt-3 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition"
+                              >
+                                View Course
+                              </a>
                             </div>
-                            <a
-                              href={course.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block mt-3 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition"
-                            >
-                              View Course
-                            </a>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </>
           )}
 
@@ -382,13 +416,19 @@ const LearnNow = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 border border-gray-700 rounded-lg bg-gray-800"
                 >
-                  <h3 className="font-semibold text-lg text-white">{exercise.title}</h3>
-                  <p className="text-gray-300 text-sm mt-1">{exercise.description}</p>
+                  <h3 className="font-semibold text-lg text-white">
+                    {exercise.title}
+                  </h3>
+                  <p className="text-gray-300 text-sm mt-1">
+                    {exercise.description}
+                  </p>
                   <div className="flex items-center mt-3 text-sm text-gray-400">
                     <Clock className="w-4 h-4 mr-1" />
                     <span>{exercise.estimatedTime}</span>
                     <span className="mx-2">•</span>
-                    <span className="px-2 py-0.5 rounded bg-gray-900 text-xs">{exercise.difficulty}</span>
+                    <span className="px-2 py-0.5 rounded bg-gray-900 text-xs">
+                      {exercise.difficulty}
+                    </span>
                   </div>
                   <button
                     onClick={() => handleStartExercise(exercise)}
@@ -411,7 +451,9 @@ const LearnNow = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 border border-gray-700 rounded-lg bg-gray-800"
                 >
-                  <h3 className="font-semibold text-lg text-white">{note.title}</h3>
+                  <h3 className="font-semibold text-lg text-white">
+                    {note.title}
+                  </h3>
                   <p className="text-gray-300 text-sm mt-1">{note.topic}</p>
                   <p className="text-gray-300 mt-2">{note.content}</p>
                 </motion.div>
@@ -429,14 +471,21 @@ const LearnNow = () => {
               className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Related Content for {selectedExercise.title}</h2>
-                <button onClick={closeModal} className="text-gray-400 hover:text-white">
+                <h2 className="text-xl font-semibold">
+                  Related Content for {selectedExercise.title}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-white"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
               {/* Related Content */}
-              <h3 className="text-lg font-semibold mb-2">Related Learning Content</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Related Learning Content
+              </h3>
               {selectedExercise.relatedContent.length > 0 ? (
                 selectedExercise.relatedContent.map((section, index) => {
                   const sectionContent = learningContent.content

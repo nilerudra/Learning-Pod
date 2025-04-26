@@ -1,3 +1,3 @@
-const domain = "http://localhost:8000";
+const domain = "https://learning-pod-e3wo.onrender.com";
 
 export { domain };

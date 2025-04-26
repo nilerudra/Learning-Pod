@@ -7,7 +7,7 @@ import axios from "axios";
 import { FolderOpen, Upload } from "lucide-react";
 
 // Establish socket connection
-const socket = io("http://localhost:8000");
+const socket = io("https://learning-pod-e3wo.onrender.com");
 
 export default function ChatContainer({ pod, isOpen }) {
   const [chatInput, setChatInput] = useState("");
@@ -35,7 +35,7 @@ export default function ChatContainer({ pod, isOpen }) {
   const handleSubmission = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/tasks/pods/${pod._id}/check-admin/${userId}`
+        `https://learning-pod-e3wo.onrender.com/tasks/pods/${pod._id}/check-admin/${userId}`
       );
       if (response.data.isAdmin) {
         navigate("/task-creation");
