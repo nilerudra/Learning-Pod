@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
     await roadmap.save();
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLEAPI_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       You are an AI-based personalized learning path generator. Generate a roadmap based on the provided user data:
@@ -175,7 +175,6 @@ router.post("/", async (req, res) => {
     await savedRoadmap.save();
 
     res.status(201).json(generatedRoadmap);
-
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).json({ error: error.message });

@@ -46,13 +46,10 @@ const TaskSubmission = () => {
       formData.append("userId", localStorage.getItem("userId"));
 
       try {
-        const response = await fetch(
-          "https://learning-pod-e3wo.onrender.com/files/upload",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const response = await fetch("http://localhost:8000/files/upload", {
+          method: "POST",
+          body: formData,
+        });
 
         if (response.ok) {
           const data = await response.json();

@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, X, Download, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  X,
+  Download,
+  AlertCircle,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { jsPDF } from "jspdf";
 
@@ -26,8 +34,11 @@ const TakeQuiz = () => {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
 
   // Progress calculation
-  const progress = quizData ? 
-    Math.round((Object.keys(userAnswers).length / quizData.questions.length) * 100) : 0;
+  const progress = quizData
+    ? Math.round(
+        (Object.keys(userAnswers).length / quizData.questions.length) * 100
+      )
+    : 0;
 
   useEffect(() => {
     const generateQuiz = async () => {
@@ -46,25 +57,36 @@ const TakeQuiz = () => {
         setLoading(false);
         return;
       }
-  
+
       try {
         // Mock phase context based on phaseName
         const phaseContext = {
           topics: phaseName.includes("Beginner")
-            ? ["HTML", "CSS", "JavaScript", "Responsive Design", "Git", "VS Code"]
+            ? [
+                "HTML",
+                "CSS",
+                "JavaScript",
+                "Responsive Design",
+                "Git",
+                "VS Code",
+              ]
             : phaseName.includes("Intermediate")
             ? ["React", "Node.js", "APIs", "Databases", "Express"]
             : ["Next.js", "DevOps", "Web3", "Microservices"],
           description: `Learn foundational skills for ${phaseName.toLowerCase()}.`,
         };
-  
+
         // Initialize Gemini API
-        const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
+        const genAI = new GoogleGenerativeAI(
+          import.meta.env.VITE_GEMINI_API_KEY
+        );
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
         // Generate quiz
         const quizPrompt = `
-  Generate a quiz with exactly 10 multiple-choice questions (4 options each, one correct answer) for the '${phaseName}' phase. The quiz should test understanding of key topics: ${phaseContext.topics.join(", ")}. Tailor difficulty to the phase (e.g., simple for beginners, complex for experts).
+  Generate a quiz with exactly 10 multiple-choice questions (4 options each, one correct answer) for the '${phaseName}' phase. The quiz should test understanding of key topics: ${phaseContext.topics.join(
+          ", "
+        )}. Tailor difficulty to the phase (e.g., simple for beginners, complex for experts).
   
   **Required Structure:**
   {
@@ -85,13 +107,13 @@ const TakeQuiz = () => {
   - Options should be plausible, with one correct answer.
   - Return only a pure JSON object without any markdown formatting or extra explanation.
   `;
-  
+
         const quizResult = await model.generateContent(quizPrompt);
         const quizText = await quizResult.response.text();
-  
+
         // Log raw response for debugging (optional)
         console.log("Raw quiz text:", quizText);
-  
+
         // Helper to extract JSON from raw string
         const extractJson = (text) => {
           const jsonStart = text.indexOf("{");
@@ -102,7 +124,7 @@ const TakeQuiz = () => {
           const jsonString = text.substring(jsonStart, jsonEnd + 1);
           return JSON.parse(jsonString);
         };
-  
+
         let quizData;
         try {
           quizData = extractJson(quizText);
@@ -110,7 +132,7 @@ const TakeQuiz = () => {
           console.error("Error parsing quiz response:", parseError.message);
           throw new Error("Failed to parse quiz data");
         }
-  
+
         // Validate quiz data
         if (!quizData.questions || quizData.questions.length !== 10) {
           throw new Error("Invalid quiz format: Expected 10 questions");
@@ -127,7 +149,7 @@ const TakeQuiz = () => {
             throw new Error("Invalid question format");
           }
         }
-  
+
         setQuizData(quizData);
         setLoading(false);
       } catch (err) {
@@ -135,10 +157,10 @@ const TakeQuiz = () => {
         setLoading(false);
       }
     };
-  
+
     generateQuiz();
   }, [phaseId, phaseName, userId]);
-  
+
   const showToastNotification = (message, type = "warning") => {
     setToastMessage(message);
     setToastType(type);
@@ -151,13 +173,16 @@ const TakeQuiz = () => {
   const handleAnswerSelect = (questionId, answer) => {
     setUserAnswers((prev) => ({
       ...prev,
-      [questionId]: answer
+      [questionId]: answer,
     }));
   };
 
   const handleNext = () => {
     if (!userAnswers[quizData.questions[currentQuestionIndex].id]) {
-      showToastNotification("Please select an answer before proceeding.", "warning");
+      showToastNotification(
+        "Please select an answer before proceeding.",
+        "warning"
+      );
       return;
     }
     if (currentQuestionIndex < quizData.questions.length - 1) {
@@ -177,7 +202,7 @@ const TakeQuiz = () => {
       const answered = Object.keys(userAnswers).length;
       const total = quizData.questions.length;
       const remaining = total - answered;
-      
+
       showToastNotification(
         `Please answer all questions before submitting. (${remaining} remaining)`,
         "error"
@@ -197,7 +222,7 @@ const TakeQuiz = () => {
     // Generate interview questions - FIX: Modified to handle parsing issues
     try {
       const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       const interviewPrompt = `
         Generate exactly 50 interview questions for a candidate preparing for a role related to the '${phaseName}' phase. 
@@ -220,22 +245,22 @@ const TakeQuiz = () => {
 
       const interviewResult = await model.generateContent(interviewPrompt);
       const interviewText = await interviewResult.response.text();
-      
+
       // Better regex pattern to extract questions
       const questionPattern = /Question\s+\d+:\s+(.*?)(?=Question\s+\d+:|$)/gs;
       const matches = Array.from(interviewText.matchAll(questionPattern));
-      
+
       // Extract just the question text from each match
-      const questions = matches.map(match => match[1].trim());
-      
+      const questions = matches.map((match) => match[1].trim());
+
       // Fallback if we don't get exactly 10 questions
       if (questions.length !== 50) {
         // Simple line-by-line parsing as fallback
         const fallbackQuestions = interviewText
-          .split('\n')
-          .filter(line => line.trim().startsWith('Question'))
-          .map(line => line.replace(/^Question\s+\d+:\s+/, '').trim());
-        
+          .split("\n")
+          .filter((line) => line.trim().startsWith("Question"))
+          .map((line) => line.replace(/^Question\s+\d+:\s+/, "").trim());
+
         if (fallbackQuestions.length >= 10) {
           setInterviewQuestions(fallbackQuestions.slice(0, 10));
         } else {
@@ -250,7 +275,7 @@ const TakeQuiz = () => {
             `Describe your experience with version control systems.`,
             `How do you approach optimization in your projects?`,
             `What team collaboration tools have you used?`,
-            `How do you handle tight deadlines?`
+            `How do you handle tight deadlines?`,
           ];
           setInterviewQuestions(defaultQuestions);
         }
@@ -270,7 +295,7 @@ const TakeQuiz = () => {
         `Describe your experience with version control systems.`,
         `How do you approach optimization in your projects?`,
         `What team collaboration tools have you used?`,
-        `How do you handle tight deadlines?`
+        `How do you handle tight deadlines?`,
       ];
       setInterviewQuestions(fallbackQuestions);
     }
@@ -286,7 +311,7 @@ const TakeQuiz = () => {
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: "a4"
+      format: "a4",
     });
 
     doc.setFont("helvetica");
@@ -305,8 +330,13 @@ const TakeQuiz = () => {
       y += wrappedText.length * 5 + 5;
     });
 
-    doc.save(`interview-questions-${phaseName.replace(/\s+/g, "-").toLowerCase()}.pdf`);
-    showToastNotification("Interview questions downloaded successfully!", "success");
+    doc.save(
+      `interview-questions-${phaseName.replace(/\s+/g, "-").toLowerCase()}.pdf`
+    );
+    showToastNotification(
+      "Interview questions downloaded successfully!",
+      "success"
+    );
   };
 
   const toggleExpandQuestion = (id) => {
@@ -358,9 +388,11 @@ const TakeQuiz = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           className={`fixed top-20 right-4 z-50 p-4 rounded-md shadow-lg flex items-center ${
-            toastType === "error" ? "bg-red-600" : 
-            toastType === "success" ? "bg-green-600" : 
-            "bg-yellow-600"
+            toastType === "error"
+              ? "bg-red-600"
+              : toastType === "success"
+              ? "bg-green-600"
+              : "bg-yellow-600"
           }`}
           style={{ zIndex: 9999 }} // Added explicit z-index
         >
@@ -406,7 +438,7 @@ const TakeQuiz = () => {
             )}
           </div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8"
@@ -416,18 +448,18 @@ const TakeQuiz = () => {
                 Your Score: {score} / {quizData.questions.length}
               </h2>
               <div className="flex items-center">
-                <div 
-                  className="h-3 w-32 bg-gray-700 rounded-full mr-2 overflow-hidden"
-                >
-                  <div 
+                <div className="h-3 w-32 bg-gray-700 rounded-full mr-2 overflow-hidden">
+                  <div
                     className={`h-full ${
-                      (score / quizData.questions.length) >= 0.7 
-                        ? "bg-green-500" 
-                        : (score / quizData.questions.length) >= 0.4 
-                        ? "bg-yellow-500" 
+                      score / quizData.questions.length >= 0.7
+                        ? "bg-green-500"
+                        : score / quizData.questions.length >= 0.4
+                        ? "bg-yellow-500"
                         : "bg-red-500"
                     }`}
-                    style={{ width: `${(score / quizData.questions.length) * 100}%` }}
+                    style={{
+                      width: `${(score / quizData.questions.length) * 100}%`,
+                    }}
                   ></div>
                 </div>
                 <span className="text-sm text-gray-400">
@@ -435,17 +467,17 @@ const TakeQuiz = () => {
                 </span>
               </div>
             </div>
-            
+
             {quizData.questions.map((question) => (
-              <motion.div 
-                key={question.id} 
+              <motion.div
+                key={question.id}
                 className={`mb-6 p-4 rounded-md transition-colors ${
-                  userAnswers[question.id] === question.correctAnswer 
-                    ? "bg-green-900/20 border border-green-700/30" 
+                  userAnswers[question.id] === question.correctAnswer
+                    ? "bg-green-900/20 border border-green-700/30"
                     : "bg-red-900/20 border border-red-700/30"
                 }`}
               >
-                <div 
+                <div
                   className="cursor-pointer flex justify-between items-center"
                   onClick={() => toggleExpandQuestion(question.id)}
                 >
@@ -456,9 +488,9 @@ const TakeQuiz = () => {
                     <X className="flex-shrink-0 w-5 h-5 text-red-500 ml-2" />
                   )}
                 </div>
-                
+
                 <AnimatePresence>
-                  {(expandedQuestion === question.id) && (
+                  {expandedQuestion === question.id && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
@@ -467,12 +499,13 @@ const TakeQuiz = () => {
                     >
                       <div className="mt-3 space-y-2">
                         {question.options.map((option, idx) => (
-                          <div 
+                          <div
                             key={idx}
                             className={`p-2 rounded ${
                               option === question.correctAnswer
                                 ? "bg-green-500/20 border border-green-500/30"
-                                : option === userAnswers[question.id] && option !== question.correctAnswer
+                                : option === userAnswers[question.id] &&
+                                  option !== question.correctAnswer
                                 ? "bg-red-500/20 border border-red-500/30"
                                 : "bg-gray-700/40"
                             }`}
@@ -481,9 +514,10 @@ const TakeQuiz = () => {
                             {option === question.correctAnswer && (
                               <Check className="inline w-4 h-4 text-green-500 ml-2" />
                             )}
-                            {option === userAnswers[question.id] && option !== question.correctAnswer && (
-                              <X className="inline w-4 h-4 text-red-500 ml-2" />
-                            )}
+                            {option === userAnswers[question.id] &&
+                              option !== question.correctAnswer && (
+                                <X className="inline w-4 h-4 text-red-500 ml-2" />
+                              )}
                           </div>
                         ))}
                       </div>
@@ -501,13 +535,15 @@ const TakeQuiz = () => {
           </motion.div>
 
           {interviewQuestions.length > 0 && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0, transition: { delay: 0.3 } }}
               className="mt-10"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Practice Interview Questions</h2>
+                <h2 className="text-xl font-semibold">
+                  Practice Interview Questions
+                </h2>
                 <button
                   onClick={handleDownloadInterviewQuestions}
                   className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600 transition text-xs font-medium"
@@ -518,12 +554,17 @@ const TakeQuiz = () => {
               </div>
               <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
                 {interviewQuestions.map((question, index) => (
-                  <div 
-                    key={index} 
-                    className={`p-4 ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"} border-b border-gray-700/50 hover:bg-gray-700/30 transition`}
+                  <div
+                    key={index}
+                    className={`p-4 ${
+                      index % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"
+                    } border-b border-gray-700/50 hover:bg-gray-700/30 transition`}
                   >
                     <p className="text-gray-300">
-                      <span className="font-semibold text-blue-400">{index + 1}.</span> {question}
+                      <span className="font-semibold text-blue-400">
+                        {index + 1}.
+                      </span>{" "}
+                      {question}
                     </p>
                   </div>
                 ))}
@@ -570,11 +611,14 @@ const TakeQuiz = () => {
         {/* Progress bar */}
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-400 mb-1">
-            <span>{Object.keys(userAnswers).length} of {quizData.questions.length} answered</span>
+            <span>
+              {Object.keys(userAnswers).length} of {quizData.questions.length}{" "}
+              answered
+            </span>
             <span>{progress}% complete</span>
           </div>
           <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-blue-600 transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             ></div>
@@ -588,18 +632,20 @@ const TakeQuiz = () => {
               key={idx}
               onClick={() => setCurrentQuestionIndex(idx)}
               className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium transition
-                ${currentQuestionIndex === idx 
-                  ? "bg-blue-600 text-white" 
-                  : userAnswers[q.id] 
-                  ? "bg-green-600/20 text-green-400 border border-green-600" 
-                  : "bg-gray-800 text-gray-400 border border-gray-700"}`}
+                ${
+                  currentQuestionIndex === idx
+                    ? "bg-blue-600 text-white"
+                    : userAnswers[q.id]
+                    ? "bg-green-600/20 text-green-400 border border-green-600"
+                    : "bg-gray-800 text-gray-400 border border-gray-700"
+                }`}
             >
               {idx + 1}
             </button>
           ))}
         </div>
 
-        <motion.div 
+        <motion.div
           key={currentQuestionIndex}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -614,16 +660,16 @@ const TakeQuiz = () => {
               {currentQuestionIndex + 1} of {quizData.questions.length}
             </span>
           </div>
-          
+
           <p className="text-lg mb-6">{currentQuestion.question}</p>
-          
+
           <div className="space-y-3 mb-8">
             {currentQuestion.options.map((option, index) => (
-              <label 
-                key={index} 
+              <label
+                key={index}
                 className={`flex items-center p-3 rounded-lg cursor-pointer transition border hover:border-blue-500/50 ${
-                  userAnswers[currentQuestion.id] === option 
-                    ? "bg-blue-600/20 border-blue-500" 
+                  userAnswers[currentQuestion.id] === option
+                    ? "bg-blue-600/20 border-blue-500"
                     : "bg-gray-700/50 border-gray-700"
                 }`}
               >
@@ -632,16 +678,24 @@ const TakeQuiz = () => {
                   name={`question-${currentQuestion.id}`}
                   value={option}
                   checked={userAnswers[currentQuestion.id] === option}
-                  onChange={() => handleAnswerSelect(currentQuestion.id, option)}
+                  onChange={() =>
+                    handleAnswerSelect(currentQuestion.id, option)
+                  }
                   className="mr-3"
                 />
-                <span className={`${userAnswers[currentQuestion.id] === option ? "text-white" : "text-gray-300"}`}>
+                <span
+                  className={`${
+                    userAnswers[currentQuestion.id] === option
+                      ? "text-white"
+                      : "text-gray-300"
+                  }`}
+                >
                   {option}
                 </span>
               </label>
             ))}
           </div>
-          
+
           <div className="mt-6 flex justify-between">
             <button
               onClick={handlePrevious}
@@ -655,7 +709,7 @@ const TakeQuiz = () => {
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </button>
-            
+
             {currentQuestionIndex < quizData.questions.length - 1 ? (
               <button
                 onClick={handleNext}

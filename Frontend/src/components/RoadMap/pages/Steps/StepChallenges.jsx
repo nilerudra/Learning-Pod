@@ -29,7 +29,7 @@ const StepChallenges = ({ formData, setFormData }) => {
 
     try {
       const response = await axios.post(
-        "https://learning-pod-e3wo.onrender.com/api/ai_generated_path",
+        "http://localhost:8000/api/ai_generated_path",
         formData,
         {
           headers: {

@@ -17,7 +17,9 @@ router.get("/:phaseId", async (req, res) => {
 
     // Validate input parameters
     if (!phaseId || !phaseName || !userId) {
-      return res.status(400).json({ error: "phaseId, phaseName, and userId are required" });
+      return res
+        .status(400)
+        .json({ error: "phaseId, phaseName, and userId are required" });
     }
 
     // Validate and convert userId to ObjectId
@@ -34,18 +36,24 @@ router.get("/:phaseId", async (req, res) => {
       .exec();
     if (!roadmap) {
       console.log(`No roadmap found for userId: ${objectId}`);
-      return res.status(404).json({ error: "Roadmap not found for the provided userId" });
+      return res
+        .status(404)
+        .json({ error: "Roadmap not found for the provided userId" });
     }
 
     // Find the phase in the roadmap that matches the phaseName
-    const phase = roadmap.roadmap.phases.find((p) => p.phaseName.includes(phaseName));
+    const phase = roadmap.roadmap.phases.find((p) =>
+      p.phaseName.includes(phaseName)
+    );
     if (!phase) {
-      return res.status(404).json({ error: `Phase '${phaseName}' not found in the roadmap` });
+      return res
+        .status(404)
+        .json({ error: `Phase '${phaseName}' not found in the roadmap` });
     }
 
     // Initialize Google Generative AI
     const genAI = new GoogleGenerativeAI(process.env.GOOGLEAPI_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Construct the prompt for generating text-based learning content
     const prompt = `
@@ -57,7 +65,11 @@ router.get("/:phaseId", async (req, res) => {
       - Phase Name: ${phase.phaseName}
       - Phase Description: ${phase.description}
       - Actionable Steps: ${JSON.stringify(phase.actionableSteps, null, 2)}
-      - Recommended Courses: ${JSON.stringify(phase.recommendedCourses, null, 2)}
+      - Recommended Courses: ${JSON.stringify(
+        phase.recommendedCourses,
+        null,
+        2
+      )}
       - Industry Trends: ${phase.industryTrends || "Not specified"}
 
       **Task:**
@@ -142,7 +154,9 @@ router.get("/:phaseId", async (req, res) => {
 
     // Parse the courses section to extract structured course data
     const courses = [];
-    const coursesSectionMatch = generatedText.match(/## Recommended Courses\n([\s\S]*)$/);
+    const coursesSectionMatch = generatedText.match(
+      /## Recommended Courses\n([\s\S]*)$/
+    );
     if (coursesSectionMatch) {
       const coursesText = coursesSectionMatch[1];
       const courseEntries = coursesText.split("- **Course Title**: ").slice(1);
@@ -177,7 +191,7 @@ router.get("/:phaseId", async (req, res) => {
             duration,
             price,
             link,
-            description
+            description,
           });
         }
       });
@@ -186,7 +200,7 @@ router.get("/:phaseId", async (req, res) => {
     // Return JSON response
     res.status(200).json({
       content: generatedText,
-      courses
+      courses,
     });
   } catch (error) {
     console.error("Error generating learning content:", error.message);

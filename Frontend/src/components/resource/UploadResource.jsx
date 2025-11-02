@@ -34,7 +34,7 @@ const UploadResource = ({ podId, onUploadSuccess }) => {
 
     try {
       const response = await axios.post(
-        `https://learning-pod-e3wo.onrender.com/resource-share`,
+        `http://localhost:8000/resource-share`,
         formData,
         {
           headers: {

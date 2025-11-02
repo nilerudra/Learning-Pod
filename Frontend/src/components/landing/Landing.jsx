@@ -95,7 +95,7 @@ const FirstStepAI = () => {
       const userData = { ...tempUser, role };
 
       const response = await axios.post(
-        "https://learning-pod-e3wo.onrender.com/api/auth",
+        "http://localhost:8000/api/auth",
         userData
       );
       const serverUser = response.data.user;
