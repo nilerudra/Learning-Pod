@@ -41,7 +41,7 @@ const LearnNow = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/learning-content/${phaseId}`,
+          `https://learning-pod-e3wo.onrender.com/api/learning-content/${phaseId}`,
           {
             params: {
               phaseName: phaseName,

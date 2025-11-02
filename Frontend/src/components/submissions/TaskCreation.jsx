@@ -17,17 +17,20 @@ function TaskCreation() {
 
   const createTask = async () => {
     try {
-      const response = await fetch("http://localhost:8000/tasks/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          taskName: task.title,
-          taskDescription: task.description,
-          createdBy: localStorage.getItem("userId"),
-        }),
-      });
+      const response = await fetch(
+        "https://learning-pod-e3wo.onrender.com/tasks/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            taskName: task.title,
+            taskDescription: task.description,
+            createdBy: localStorage.getItem("userId"),
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -44,7 +47,9 @@ function TaskCreation() {
     const fetchTasks = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/tasks/user/${localStorage.getItem("userIdd")}`
+          `https://learning-pod-e3wo.onrender.com/tasks/user/${localStorage.getItem(
+            "userIdd"
+          )}`
         );
         console.log(response);
         setTasks(response.data); // Store the fetched tasks in state

@@ -12,7 +12,7 @@ const Roadmap = () => {
   const navigate = useNavigate();
 
   const USER_ID = localStorage.getItem("userId");
-  const API_URL = `http://localhost:8000/api/roadmap/${USER_ID}`;
+  const API_URL = `https://learning-pod-e3wo.onrender.com/api/roadmap/${USER_ID}`;
 
   useEffect(() => {
     const fetchRoadmap = async () => {
