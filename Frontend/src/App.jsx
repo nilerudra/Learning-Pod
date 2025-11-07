@@ -26,6 +26,7 @@ import TaskCreation from "./components/submissions/TaskCreation";
 import TaskSubmission from "./components/submissions/TaskSubmission";
 import LearnNow from "./components/RoadMap/learn_now/LearnNow";
 import TakeQuiz from "./components/RoadMap/Quiz/TakeQuiz";
+import Profile from "./components/Profile/Profile";
 
 function MainLayout() {
   return (
@@ -37,12 +38,12 @@ function MainLayout() {
         <div className="content">
           <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/career-path" element={<Home />} />
             <Route path="/roadmap-list" element={<RoadmapList />} />
             <Route path="/form" element={<MultiStepForm />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/static-roadmap" element={<RoadmapComponent />} />
-            <Route path="/*" element={<NotFound />} />
             <Route path="/whiteboard" element={<WhiteBoard />} />
             <Route path="/pod" element={<Pod />} />
             <Route path="/explore" element={<Explore />} />
@@ -53,6 +54,9 @@ function MainLayout() {
             <Route path="/submission" element={<TaskSubmission />} />
             <Route path="/learn/:phaseId" element={<LearnNow />} />
             <Route path="/quiz/:phaseId" element={<TakeQuiz />} />
+
+            {/* 404 */}
+            <Route path="/*" element={<NotFound />} />
           </Routes>
         </div>
         <Chatbot />

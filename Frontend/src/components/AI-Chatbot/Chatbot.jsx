@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Send, X, MessageCircle } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const Chatbot = () => {

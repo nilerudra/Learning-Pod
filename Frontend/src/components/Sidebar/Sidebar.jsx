@@ -4,10 +4,8 @@ import {
   Home,
   Rocket,
   LogOut,
-  MoreHorizontal,
   Map,
   PencilIcon,
-  LayoutGrid,
   MessageCircle,
   Menu,
   Compass,
@@ -24,7 +22,6 @@ const Sidebar = () => {
     if (!expanded) return;
 
     const handleClickOutside = (event) => {
-      // Check if click is outside both the sidebar and the toggle button
       if (
         sidebarRef.current &&
         !sidebarRef.current.contains(event.target) &&
@@ -38,6 +35,22 @@ const Sidebar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [expanded]);
+
+  // 🧭 Define all routes here
+  const routes = [
+    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/career-path", label: "Roadmap", icon: Rocket },
+    { path: "/roadmap-list", label: "Static Roadmap", icon: Map },
+    { path: "/explore", label: "Explore", icon: Compass },
+    { path: "/pod", label: "Pods", icon: MessageCircle },
+    { path: "/whiteboard", label: "Whiteboard", icon: PencilIcon },
+    {
+      path: "/",
+      label: "Logout",
+      icon: LogOut,
+      onClick: () => localStorage.removeItem("user"),
+    },
+  ];
 
   return (
     <aside
@@ -67,56 +80,17 @@ const Sidebar = () => {
 
       {/* Sidebar Items */}
       <nav className="mt-6 flex flex-col space-y-4">
-        <Link
-          to="/dashboard"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-        >
-          <Home size={24} />
-          {expanded && <span className="ml-3">Dashboard</span>}
-        </Link>
-        <Link
-          to="/career-path"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-        >
-          <Rocket size={24} />
-          {expanded && <span className="ml-3">Roadmap</span>}
-        </Link>
-        <Link
-          to="/roadmap-list"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-        >
-          <Map size={24} />
-          {expanded && <span className="ml-3">Static Roadmap</span>}
-        </Link>
-        <Link
-          to="/explore"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-        >
-          <Compass size={24} />
-          {expanded && <span className="ml-3">Explore</span>}
-        </Link>
-        <Link
-          to="/pod"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-        >
-          <MessageCircle size={24} />
-          {expanded && <span className="ml-3">Pods</span>}
-        </Link>
-        <Link
-          to="/whiteboard"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-        >
-          <PencilIcon size={24} />
-          {expanded && <span className="ml-3">Whiteboard</span>}
-        </Link>
-        <Link
-          to="/"
-          className="flex items-center p-3 rounded-lg hover:bg-purple-500 hover:text-white transition"
-          onClick={() => localStorage.removeItem("user")}
-        >
-          <LogOut size={24} />
-          {expanded && <span className="ml-3">Logout</span>}
-        </Link>
+        {routes.map(({ path, label, icon: Icon, onClick }) => (
+          <Link
+            key={label}
+            to={path}
+            onClick={onClick}
+            className="flex items-center p-3 rounded-lg hover:bg-gradient-to-tr from-purple-500/50 to-transparent hover:text-white transition"
+          >
+            <Icon size={24} />
+            {expanded && <span className="ml-3">{label}</span>}
+          </Link>
+        ))}
       </nav>
     </aside>
   );

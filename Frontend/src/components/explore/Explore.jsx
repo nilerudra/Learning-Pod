@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { domain } from "../../utils/domain";
-import { BookOpen, Target, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Explore = () => {
@@ -133,7 +133,7 @@ const Explore = () => {
           </h1>
         </motion.div>
 
-        <p className="text-xl text-gray-700 dark:text-gray-500 max-w-2xl mt-4">
+        <p className="text-xl text-gray-700 dark:text-gray-500 max-w-2xl">
           Discover and join pods that match your interests and passions.
         </p>
       </motion.div>
@@ -179,29 +179,44 @@ const Explore = () => {
 
       {/* Modal for sending a join request */}
       {openPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
-          <div className="bg-white p-6 rounded-lg w-80 max-w-full">
-            <h3 className="text-xl font-semibold mb-4">
-              Join {selectedPod?.pod_name}
-            </h3>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl w-96 max-w-full border border-gray-200 dark:border-gray-700 transition-all">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Join{" "}
+                <span className="text-purple-600">{selectedPod?.pod_name}</span>
+              </h3>
+              <button
+                onClick={handleClosePopup}
+                className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Textarea */}
             <textarea
-              className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              placeholder="Enter your message"
+              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100 resize-none mb-5"
+              rows="4"
+              placeholder="Write a short message to request joining..."
               value={requestMessage}
               onChange={(e) => setRequestMessage(e.target.value)}
             ></textarea>
-            <div className="flex justify-between">
+
+            {/* Action buttons */}
+            <div className="flex justify-end gap-3">
               <button
                 onClick={handleClosePopup}
-                className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSendRequest}
-                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm transition-all"
               >
-                Request
+                Send Request
               </button>
             </div>
           </div>

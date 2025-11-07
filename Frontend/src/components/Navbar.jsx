@@ -4,14 +4,13 @@ import {
   Sun,
   Moon,
   Home,
-  Shield,
   Settings,
   HelpCircle,
   LogOut,
+  User,
 } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useNavigate } from "react-router";
-import GoogleTranslate from "./GoogleTranslate";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -45,13 +44,13 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full flex items-center justify-between px-6 py-3 border-b-1 border-gray-300
+      className={`fixed top-0 left-0 min-w-xs md:w-full flex items-center justify-between px-6 py-3 border-b-1 border-gray-300
       backdrop-blur-md transition-all duration-300 z-1000
       ${theme === "dark" ? "text-white" : "text-gray-900"}`}
     >
       <div className="flex items-center">
         <div
-          className={`w-10 h-10  rounded-lg flex items-center justify-center mr-2 transition-colors`}
+          className={`w-6 h-6 md:w-10 md:h-10  rounded-lg flex items-center justify-center mr-2 transition-colors`}
         >
           <DotLottieReact
             src="https://lottie.host/5e6005ef-41de-425b-b566-7585e8523a12/Q1nKp82ai4.lottie"
@@ -60,9 +59,9 @@ const Navbar = () => {
           />
         </div>
         <span
-          className={`text-xl font-bold ${
+          className={`text-sm md:text-lg font-bold uppercase tracking-wider ${
             theme === "dark"
-              ? "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent"
+              ? "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent"
               : "text-blue-600"
           } transition-colors`}
         >
@@ -71,7 +70,6 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-x-4 relative">
-        <GoogleTranslate />
         <button
           onClick={toggleTheme}
           className={`p-2 rounded-full cursor-pointer ${
@@ -100,12 +98,21 @@ const Navbar = () => {
                 <ul className="flex flex-col p-2">
                   <li
                     className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => {
+                      navigate("/dashboard");
+                      setIsOpen(!isOpen);
+                    }}
                   >
-                    <Home size={18} /> Home
+                    <Home size={18} /> Dashboard
                   </li>
-                  <li className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer">
-                    <Shield size={18} /> Privacy
+                  <li
+                    onClick={() => {
+                      navigate("/profile");
+                      setIsOpen(!isOpen);
+                    }}
+                    className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer"
+                  >
+                    <User size={18} /> View Profile
                   </li>
                   <li className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer">
                     <Settings size={18} /> Settings

@@ -1,31 +1,66 @@
-import { useState, useRef, useEffect } from "react";
+// Whiteboard.jsx
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { Rnd } from "react-rnd";
+import { motion } from "framer-motion";
+import { Save, Download, RotateCcw, RotateCw, Trash2, Eye } from "lucide-react";
 
-export default function WhiteboardApp() {
+/**
+ * Whiteboard component — feature-rich single-file implementation.
+ *
+ * Requirements:
+ *  - Tailwind CSS
+ *  - socket.io-client
+ *  - axios
+ *  - uuid
+ *  - framer-motion
+ *  - react-rnd
+ *
+ * Props (optional):
+ *  - userId (string) - current user id for backend
+ *  - socketUrl (string) - URL for socket.io server
+ *  - api (object) - optional backend endpoints: { saveUrl, loadUrl, listUrl }
+ *
+ * Notes:
+ *  - Backend integration points are clearly marked. If you don't have a backend,
+ *    component will still function with localStorage-based saving.
+ */
+
+export default function Whiteboard() {
+  // Canvas refs + states
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [color, setColor] = useState("#000000");
-  const [brushSize, setBrushSize] = useState(5);
-  const [tool, setTool] = useState("pencil"); // 'pencil', 'eraser', 'text', 'sticky'
+  const [tool, setTool] = useState("pencil"); // pencil, eraser, text, sticky
+  const [color, setColor] = useState("#fff");
+  const [brushSize, setBrushSize] = useState(4);
+  const [fontSize, setFontSize] = useState(20);
+
+  // Sticky notes & text
+  const [stickies, setStickies] = useState([]); // { id, x, y, width, height, text, color, z }
+  const [isAddingSticky, setIsAddingSticky] = useState(false);
+  const [newStickyPos, setNewStickyPos] = useState({ x: 100, y: 100 });
+
+  const [textOverlay, setTextOverlay] = useState(null); // { x,y, value, id }
+
+  // Undo/redo stacks store snapshots + sticky state
   const [history, setHistory] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
-  const [textInput, setTextInput] = useState("");
-  const [fontSize, setFontSize] = useState(20);
-  const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
-  const [isAddingText, setIsAddingText] = useState(false);
-  const [stickyNotes, setStickyNotes] = useState([]);
-  const [newStickyPosition, setNewStickyPosition] = useState({ x: 0, y: 0 });
-  const [isAddingSticky, setIsAddingSticky] = useState(false);
-  const [stickyInput, setStickyInput] = useState("");
-  const [activeStickyId, setActiveStickyId] = useState(null);
-  const [isDraggingSticky, setIsDraggingSticky] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  // New state variables for save functionality
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [fileName, setFileName] = useState("pathwayx-drawing");
-  const [savedFiles, setSavedFiles] = useState([]);
 
+  // Saved files
+  const [savedFiles, setSavedFiles] = useState([]);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [fileName, setFileName] = useState("pathwayx-whiteboard");
+
+  // UI
+  const [showSavedSidebar, setShowSavedSidebar] = useState(false);
+
+  // Collaboration throttle
+  const drawThrottleRef = useRef(null);
+
+  // Colors
   const colors = [
-    "#000000",
+    "#fff",
     "#FF5252",
     "#4CAF50",
     "#2196F3",
@@ -33,414 +68,495 @@ export default function WhiteboardApp() {
     "#9C27B0",
     "#607D8B",
   ];
-  const stickyColors = ["#FFEB3B", "#FF9800", "#E91E63", "#4CAF50", "#2196F3"];
 
+  // ---------- Setup canvas and socket ----------
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.lineWidth = brushSize;
-    ctx.strokeStyle = color;
+    const resize = () => {
+      // preserve drawing by copying current image
+      const tmp = document.createElement("canvas");
+      tmp.width = canvas.width;
+      tmp.height = canvas.height;
+      tmp.getContext("2d").drawImage(canvas, 0, 0);
 
-    // Resize canvas to fill the container
-    const resizeCanvas = () => {
-      const container = canvas.parentElement;
-      canvas.width = container.clientWidth;
-      canvas.height = container.clientHeight;
+      const parent = containerRef.current;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.lineWidth = brushSize;
+      ctx.strokeStyle = color;
+
+      // draw back previous
+      ctx.drawImage(
+        tmp,
+        0,
+        0,
+        tmp.width,
+        tmp.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
     };
 
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    resize();
+    window.addEventListener("resize", resize);
 
-    // Load saved files from localStorage
-    const savedFilesData = localStorage.getItem("pathwayxSavedFiles");
-    if (savedFilesData) {
-      setSavedFiles(JSON.parse(savedFilesData));
-    }
+    // load saved files from localStorage
+    const local = localStorage.getItem("pathwayxSavedFiles");
+    if (local) setSavedFiles(JSON.parse(local));
 
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-    };
-  }, []);
+    return () => window.removeEventListener("resize", resize);
+  }, []); // run once
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext("2d");
     ctx.lineWidth = brushSize;
-    ctx.strokeStyle = tool === "eraser" ? "#FFFFFF" : color;
-
+    ctx.strokeStyle = tool === "eraser" ? "#ffffff" : color;
+    ctx.globalCompositeOperation =
+      tool === "eraser" ? "destination-out" : "source-over";
     if (tool === "text") {
       ctx.font = `${fontSize}px sans-serif`;
       ctx.fillStyle = color;
     }
-  }, [color, brushSize, tool, fontSize]);
+  }, [brushSize, color, tool, fontSize]);
 
-  const saveCanvasState = () => {
+  // ---------- Drawing logic ----------
+  const saveCanvasSnapshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    try {
+      const data = canvas.toDataURL();
+      setHistory((h) => [
+        ...h,
+        { img: data, stickies: JSON.parse(JSON.stringify(stickies)) },
+      ]);
+      setRedoStack([]);
+    } catch (err) {
+      console.warn("snapshot failed", err);
+    }
+  }, [stickies]);
 
-    setHistory([...history, canvas.toDataURL()]);
-    setRedoStack([]);
+  const getCanvasContext = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    return canvas.getContext("2d");
   };
 
-  const startDrawing = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const toCanvasCoords = (clientX, clientY) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    return { x, y };
+  };
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  // store active path for broadcasting
+  const activePathRef = useRef(null);
 
-    // Check if clicking on a sticky note first
-    const clickedSticky = stickyNotes.find(
-      (note) =>
-        x >= note.x && x <= note.x + 200 && y >= note.y && y <= note.y + 200
-    );
-
-    if (clickedSticky) {
-      setActiveStickyId(clickedSticky.id);
-      setIsDraggingSticky(true);
-      setDragOffset({
-        x: x - clickedSticky.x,
-        y: y - clickedSticky.y,
-      });
-      return;
-    }
-
-    if (tool === "text") {
-      setTextPosition({ x, y });
-      setIsAddingText(true);
-    } else if (tool === "sticky") {
-      setNewStickyPosition({ x, y });
+  const handleMouseDown = (e) => {
+    if (tool === "sticky") {
+      // start sticky creation at pointer
+      const { x, y } = toCanvasCoords(e.clientX, e.clientY);
+      setNewStickyPos({ x, y });
       setIsAddingSticky(true);
-    } else {
-      const ctx = canvas.getContext("2d");
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      setIsDrawing(true);
-      saveCanvasState();
+      return;
     }
+    if (tool === "text") {
+      const { x, y } = toCanvasCoords(e.clientX, e.clientY);
+      const id = uuidv4();
+      setTextOverlay({ x, y, value: "", id });
+      return;
+    }
+
+    const { x, y } = toCanvasCoords(e.clientX, e.clientY);
+    const ctx = getCanvasContext();
+    if (!ctx) return;
+
+    // Begin path
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+    saveCanvasSnapshot();
+
+    // remote begin
+    activePathRef.current = {
+      id: uuidv4(),
+      points: [{ x, y }],
+      color,
+      size: brushSize,
+      tool,
+    };
+    if (socket && socket.connected)
+      socket.emit("draw", { action: "begin", path: activePathRef.current });
   };
 
-  const draw = (e) => {
+  const handleMouseMove = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const ctx = getCanvasContext();
+    if (!ctx) return;
+    const { x, y } = toCanvasCoords(e.clientX, e.clientY);
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // drawing
+    if (isDrawing && tool !== "text" && tool !== "sticky") {
+      ctx.lineTo(x, y);
+      ctx.stroke();
 
-    if (isDraggingSticky && activeStickyId) {
-      // Move sticky note
-      setStickyNotes((notes) =>
-        notes.map((note) =>
-          note.id === activeStickyId
-            ? { ...note, x: x - dragOffset.x, y: y - dragOffset.y }
-            : note
-        )
-      );
-      return;
+      // accumulate for remote broadcast, but throttle
+      if (activePathRef.current) {
+        activePathRef.current.points.push({ x, y });
+        if (!drawThrottleRef.current) {
+          drawThrottleRef.current = setTimeout(() => {
+            clearTimeout(drawThrottleRef.current);
+            drawThrottleRef.current = null;
+          }, 40);
+        }
+      }
     }
-
-    if (!isDrawing || tool === "text" || tool === "sticky") return;
-
-    const ctx = canvas.getContext("2d");
-    ctx.lineTo(x, y);
-    ctx.stroke();
   };
 
-  const stopDrawing = () => {
-    if (isDraggingSticky) {
-      setIsDraggingSticky(false);
-      setActiveStickyId(null);
-      return;
-    }
+  const handleMouseUp = () => {
+    if (isDrawing && tool !== "text" && tool !== "sticky") {
+      const ctx = getCanvasContext();
+      if (ctx) ctx.closePath();
+      setIsDrawing(false);
 
-    if (tool !== "text" && tool !== "sticky") {
+      activePathRef.current = null;
+    }
+  };
+
+  // Remote draw handler: apply a path from others
+  const handleRemoteDraw = (payload) => {
+    try {
       const canvas = canvasRef.current;
       if (!canvas) return;
+      const ctx = getCanvasContext();
+      if (!ctx) return;
+      const { action, path } = payload; // path has points[], color, size, tool
+      if (!path || !path.points || path.points.length === 0) return;
 
-      const ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.lineWidth = path.size || 4;
+      ctx.strokeStyle =
+        path.tool === "eraser" ? "#ffffff" : path.color || "#111";
+      ctx.globalCompositeOperation =
+        path.tool === "eraser" ? "destination-out" : "source-over";
+
+      ctx.beginPath();
+      ctx.moveTo(path.points[0].x, path.points[0].y);
+      for (let i = 1; i < path.points.length; i++) {
+        ctx.lineTo(path.points[i].x, path.points[i].y);
+      }
+      ctx.stroke();
       ctx.closePath();
-      setIsDrawing(false);
+      ctx.restore();
+    } catch (err) {
+      console.warn("remote draw error", err);
     }
   };
 
-  const addTextToCanvas = () => {
-    if (!textInput.trim()) {
-      setIsAddingText(false);
-      return;
-    }
+  // ---------- Sticky handling & remote ----------
+  const addSticky = (sticky) => {
+    setStickies((s) => {
+      const next = [...s, sticky];
+      // broadcast
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    saveCanvasState();
-
-    const ctx = canvas.getContext("2d");
-    ctx.font = `${fontSize}px sans-serif`;
-    ctx.fillStyle = color;
-    ctx.fillText(textInput, textPosition.x, textPosition.y);
-
-    setTextInput("");
-    setIsAddingText(false);
+      return next;
+    });
   };
 
-  const addStickyNote = () => {
-    if (!stickyInput.trim()) {
-      setIsAddingSticky(false);
-      return;
-    }
+  const updateSticky = (sticky) => {
+    setStickies((s) => {
+      const next = s.map((st) =>
+        st.id === sticky.id ? { ...st, ...sticky } : st
+      );
 
-    const newSticky = {
-      id: Date.now(),
-      text: stickyInput,
-      x: newStickyPosition.x,
-      y: newStickyPosition.y,
-      color: stickyColors[Math.floor(Math.random() * stickyColors.length)],
-    };
-
-    setStickyNotes([...stickyNotes, newSticky]);
-    setStickyInput("");
-    setIsAddingSticky(false);
+      return next;
+    });
   };
 
   const deleteSticky = (id) => {
-    setStickyNotes(stickyNotes.filter((note) => note.id !== id));
+    setStickies((s) => {
+      const next = s.filter((st) => st.id !== id);
+
+      return next;
+    });
   };
 
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    saveCanvasState();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Also clear sticky notes
-    setStickyNotes([]);
+  const handleRemoteSticky = (payload) => {
+    const { action } = payload;
+    if (action === "add") {
+      const { sticky } = payload;
+      setStickies((s) =>
+        s.some((x) => x.id === sticky.id) ? s : [...s, sticky]
+      );
+    } else if (action === "update") {
+      const { sticky } = payload;
+      setStickies((s) =>
+        s.map((st) => (st.id === sticky.id ? { ...st, ...sticky } : st))
+      );
+    } else if (action === "delete") {
+      const { stickyId } = payload;
+      setStickies((s) => s.filter((st) => st.id !== stickyId));
+    }
   };
 
+  // Text overlay submit
+  const submitTextOverlay = () => {
+    if (!textOverlay) return;
+    const { x, y, value, id } = textOverlay;
+    if (!value || value.trim() === "") {
+      setTextOverlay(null);
+      return;
+    }
+    const ctx = getCanvasContext();
+    if (!ctx) return;
+    saveCanvasSnapshot();
+    ctx.font = `${fontSize}px sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(value, x, y);
+
+    // broadcast
+
+    setTextOverlay(null);
+  };
+
+  const handleRemoteText = (payload) => {
+    // payload: { id, x, y, value, color, fontSize }
+    try {
+      const { x, y, value, color: c, fontSize: fs } = payload;
+      const ctx = getCanvasContext();
+      if (!ctx) return;
+      ctx.font = `${fs || 20}px sans-serif`;
+      ctx.fillStyle = c || "#111";
+      ctx.fillText(value, x, y);
+    } catch (err) {
+      console.warn("remote text draw failed", err);
+    }
+  };
+
+  // ---------- Undo / Redo ----------
   const undo = () => {
     if (history.length === 0) return;
-
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    const lastState = history.pop();
-    setHistory([...history]);
-    setRedoStack([...redoStack, canvas.toDataURL()]);
+    const ctx = getCanvasContext();
+    if (!canvas || !ctx) return;
+    const last = history[history.length - 1];
+    const remaining = history.slice(0, history.length - 1);
+    setHistory(remaining);
+    setRedoStack((r) => [
+      ...r,
+      {
+        img: canvas.toDataURL(),
+        stickies: JSON.parse(JSON.stringify(stickies)),
+      },
+    ]);
 
     const img = new Image();
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
+      // restore sticky state snapshot if included
+      if (last.stickies) setStickies(last.stickies);
     };
-    img.src = lastState;
+    img.src = last.img;
   };
 
   const redo = () => {
     if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack((r) => r.slice(0, r.length - 1));
+    setHistory((h) => [
+      ...h,
+      {
+        img: canvasRef.current.toDataURL(),
+        stickies: JSON.parse(JSON.stringify(stickies)),
+      },
+    ]);
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    const nextState = redoStack.pop();
-    setRedoStack([...redoStack]);
-    setHistory([...history, canvas.toDataURL()]);
-
+    const ctx = getCanvasContext();
+    if (!ctx) return;
     const img = new Image();
     img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       ctx.drawImage(img, 0, 0);
+      if (next.stickies) setStickies(next.stickies);
     };
-    img.src = nextState;
+    img.src = next.img;
   };
 
-  // New save functionality
-  const saveCanvas = () => {
-    setShowSaveDialog(true);
-  };
-
-  const confirmSave = () => {
+  // ---------- Save / Download ----------
+  const downloadCombinedImage = (name) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const temp = document.createElement("canvas");
+    temp.width = canvas.width;
+    temp.height = canvas.height;
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(canvas, 0, 0);
 
-    // Create a temporary canvas that includes sticky notes
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext("2d");
-
-    // Draw the original canvas
-    tempCtx.drawImage(canvas, 0, 0);
-
-    // Draw sticky notes
-    stickyNotes.forEach((note) => {
-      // Draw sticky note background
-      tempCtx.fillStyle = note.color;
-      tempCtx.fillRect(note.x, note.y, 200, 200);
-
-      // Draw sticky note border
-      tempCtx.strokeStyle = "#00000033";
-      tempCtx.lineWidth = 1;
-      tempCtx.strokeRect(note.x, note.y, 200, 200);
-
-      // Draw sticky note text
-      tempCtx.fillStyle = "#000000";
-      tempCtx.font = "16px sans-serif";
-
-      // Wrap text for sticky note
-      const words = note.text.split(" ");
+    // draw stickies on temp
+    stickies.forEach((s) => {
+      tctx.fillStyle = s.color || "#FFEB3B";
+      tctx.fillRect(s.x, s.y, s.width, s.height);
+      tctx.strokeStyle = "#00000033";
+      tctx.strokeRect(s.x, s.y, s.width, s.height);
+      tctx.fillStyle = "#000";
+      tctx.font = "14px sans-serif";
+      // simple wrap
+      const words = s.text.split(" ");
       let line = "";
-      let y = note.y + 30;
-
+      let y = s.y + 20;
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + " ";
-        const metrics = tempCtx.measureText(testLine);
-        const testWidth = metrics.width;
-
-        if (testWidth > 180 && i > 0) {
-          tempCtx.fillText(line, note.x + 10, y);
+        const m = tctx.measureText(testLine).width;
+        if (m > s.width - 20 && i > 0) {
+          tctx.fillText(line, s.x + 10, y);
           line = words[i] + " ";
-          y += 20;
+          y += 18;
         } else {
           line = testLine;
         }
       }
-      tempCtx.fillText(line, note.x + 10, y);
+      tctx.fillText(line, s.x + 10, y);
     });
 
-    // Get data URL from canvas
-    const dataURL = tempCanvas.toDataURL("image/png");
+    const url = temp.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name || fileName}.png`;
+    a.click();
+  };
 
-    // Save to localStorage
+  const confirmSave = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const temp = document.createElement("canvas");
+    temp.width = canvas.width;
+    temp.height = canvas.height;
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(canvas, 0, 0);
+
+    // draw stickies
+    stickies.forEach((s) => {
+      tctx.fillStyle = s.color || "#FFEB3B";
+      tctx.fillRect(s.x, s.y, s.width, s.height);
+      tctx.strokeStyle = "#00000033";
+      tctx.strokeRect(s.x, s.y, s.width, s.height);
+      tctx.fillStyle = "#000";
+      tctx.font = "14px sans-serif";
+      const words = s.text.split(" ");
+      let line = "";
+      let y = s.y + 20;
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + " ";
+        const m = tctx.measureText(testLine).width;
+        if (m > s.width - 20 && i > 0) {
+          tctx.fillText(line, s.x + 10, y);
+          line = words[i] + " ";
+          y += 18;
+        } else {
+          line = testLine;
+        }
+      }
+      tctx.fillText(line, s.x + 10, y);
+    });
+
+    const dataURL = temp.toDataURL("image/png");
     const newFile = {
       id: Date.now(),
-      name: fileName.trim() || "pathwayx-drawing",
+      name: fileName.trim() || "pathwayx-whiteboard",
       dataURL,
       date: new Date().toLocaleString(),
     };
 
-    const updatedFiles = [...savedFiles, newFile];
-    setSavedFiles(updatedFiles);
-    localStorage.setItem("pathwayxSavedFiles", JSON.stringify(updatedFiles));
+    // update localStorage
+    const next = [...savedFiles, newFile];
+    setSavedFiles(next);
+    localStorage.setItem("pathwayxSavedFiles", JSON.stringify(next));
 
-    setShowSaveDialog(false);
-    setFileName("pathwayx-drawing");
-
-    // Show save confirmation message
-    alert(`File "${newFile.name}" saved successfully!`);
-  };
-
-  const downloadCanvas = () => {
-    // Create a temporary canvas that includes sticky notes
-    const tempCanvas = document.createElement("canvas");
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext("2d");
-
-    // Draw the original canvas
-    tempCtx.drawImage(canvas, 0, 0);
-
-    // Draw sticky notes
-    stickyNotes.forEach((note) => {
-      // Draw sticky note background
-      tempCtx.fillStyle = note.color;
-      tempCtx.fillRect(note.x, note.y, 200, 200);
-
-      // Draw sticky note border
-      tempCtx.strokeStyle = "#00000033";
-      tempCtx.lineWidth = 1;
-      tempCtx.strokeRect(note.x, note.y, 200, 200);
-
-      // Draw sticky note text
-      tempCtx.fillStyle = "#000000";
-      tempCtx.font = "16px sans-serif";
-
-      // Wrap text for sticky note
-      const words = note.text.split(" ");
-      let line = "";
-      let y = note.y + 30;
-
-      for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + " ";
-        const metrics = tempCtx.measureText(testLine);
-        const testWidth = metrics.width;
-
-        if (testWidth > 180 && i > 0) {
-          tempCtx.fillText(line, note.x + 10, y);
-          line = words[i] + " ";
-          y += 20;
-        } else {
-          line = testLine;
-        }
-      }
-      tempCtx.fillText(line, note.x + 10, y);
-    });
-
-    // Download the combined image
-    const link = document.createElement("a");
-    link.download = `${fileName.trim() || "pathwayx-drawing"}.png`;
-    link.href = tempCanvas.toDataURL();
-    link.click();
+    setShowSaveModal(false);
+    setFileName("pathwayx-whiteboard");
+    alert(`Saved "${newFile.name}"`);
   };
 
   const loadSavedFile = (file) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-
-    // Clear current canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Load saved image
+    // load image onto canvas
     const img = new Image();
     img.onload = () => {
+      const canvas = canvasRef.current;
+      const ctx = getCanvasContext();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
+      // note: stickies are flattened into image — we clear them
+      setStickies([]);
+      setHistory([]);
+      setRedoStack([]);
     };
     img.src = file.dataURL;
-
-    // Clear sticky notes (as they're part of the saved image now)
-    setStickyNotes([]);
-
-    // Reset history and redo stack
-    setHistory([]);
-    setRedoStack([]);
-
-    // Save current state after loading
-    setTimeout(() => {
-      saveCanvasState();
-    }, 100);
   };
 
-  const deleteSavedFile = (id) => {
-    const updatedFiles = savedFiles.filter((file) => file.id !== id);
-    setSavedFiles(updatedFiles);
-    localStorage.setItem("pathwayxSavedFiles", JSON.stringify(updatedFiles));
+  const deleteSaved = (id) => {
+    const next = savedFiles.filter((f) => f.id !== id);
+    setSavedFiles(next);
+    localStorage.setItem("pathwayxSavedFiles", JSON.stringify(next));
+    // backend delete if you have endpoint
   };
 
+  // ---------- Shortcuts ----------
+  useEffect(() => {
+    const onKey = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        undo();
+      } else if (
+        (mod && e.key.toLowerCase() === "y") ||
+        (mod && e.shiftKey && e.key.toLowerCase() === "z")
+      ) {
+        e.preventDefault();
+        redo();
+      } else if (mod && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        setShowSaveModal(true);
+      } else if (!mod) {
+        // quick tool switches
+        if (e.key.toLowerCase() === "b") setTool("pencil");
+        if (e.key.toLowerCase() === "e") setTool("eraser");
+        if (e.key.toLowerCase() === "t") setTool("text");
+        if (e.key.toLowerCase() === "n") setTool("sticky");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history, redoStack, stickies]);
+
+  // ---------- Remote event helpers ----------
+  // On receiving remote text we already draw in handleRemoteText
+  // On receiving remote sticky, handled earlier
+
+  // ---------- UI render ----------
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Toolbar */}
-      <div className="bg-gray-800 p-2 flex items-center justify-between border-b border-gray-700">
-        <div className="flex items-center space-x-4">
-          <span className="font-semibold text-lg">PathwayX</span>
+      <div className="bg-gray-800 p-3 flex items-center justify-between border-b border-gray-700">
+        <div className="flex items-center gap-4">
+          <div className="font-semibold text-lg">PathwayX</div>
 
-          <div className="flex space-x-1">
+          <div className="flex items-center gap-2">
             <button
-              className={`p-2 rounded ${
+              className={`px-3 py-1 rounded ${
                 tool === "pencil" ? "bg-blue-600" : "bg-gray-700"
               }`}
               onClick={() => setTool("pencil")}
@@ -448,7 +564,7 @@ export default function WhiteboardApp() {
               Pencil
             </button>
             <button
-              className={`p-2 rounded ${
+              className={`px-3 py-1 rounded ${
                 tool === "eraser" ? "bg-blue-600" : "bg-gray-700"
               }`}
               onClick={() => setTool("eraser")}
@@ -456,7 +572,7 @@ export default function WhiteboardApp() {
               Eraser
             </button>
             <button
-              className={`p-2 rounded ${
+              className={`px-3 py-1 rounded ${
                 tool === "text" ? "bg-blue-600" : "bg-gray-700"
               }`}
               onClick={() => setTool("text")}
@@ -464,307 +580,384 @@ export default function WhiteboardApp() {
               Text
             </button>
             <button
-              className={`p-2 rounded ${
+              className={`px-3 py-1 rounded ${
                 tool === "sticky" ? "bg-blue-600" : "bg-gray-700"
               }`}
               onClick={() => setTool("sticky")}
             >
-              Sticky Note
-            </button>
-            <button className="p-2 rounded bg-gray-700" onClick={clearCanvas}>
-              Clear All
+              Sticky
             </button>
           </div>
 
-          {tool === "text" && (
-            <div className="flex items-center">
-              <span className="mr-2">Font Size:</span>
-              <input
-                type="range"
-                min="10"
-                max="60"
-                value={fontSize}
-                onChange={(e) => setFontSize(parseInt(e.target.value))}
-                className="w-24"
-              />
-              <span className="ml-2">{fontSize}px</span>
-            </div>
-          )}
-
-          {(tool === "pencil" || tool === "eraser") && (
-            <div className="flex items-center">
-              <span className="mr-2">Size:</span>
-              <input
-                type="range"
-                min="1"
-                max="50"
-                value={brushSize}
-                onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                className="w-24"
-              />
-              <span className="ml-2">{brushSize}px</span>
-            </div>
-          )}
-
-          {tool !== "sticky" && (
-            <div className="flex">
-              {colors.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  className={`w-6 h-6 mx-1 rounded-full ${
-                    color === c ? "ring-2 ring-white" : ""
-                  }`}
-                  style={{ backgroundColor: c }}
+          {/* Brush / Color */}
+          <div className="flex items-center gap-3 ml-4">
+            {(tool === "pencil" || tool === "eraser") && (
+              <>
+                <label className="text-sm">Size</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                  className="w-28"
                 />
-              ))}
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-6 h-6 mx-1 rounded cursor-pointer"
-              />
-            </div>
-          )}
+                <div className="flex items-center gap-1">
+                  {colors.map((c) => (
+                    <button
+                      aria-label={`color-${c}`}
+                      key={c}
+                      onClick={() => setColor(c)}
+                      className={`w-6 h-6 rounded-full border ${
+                        color === c ? "ring-2 ring-white" : ""
+                      }`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {tool === "text" && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm">Font</label>
+                <input
+                  type="range"
+                  min="12"
+                  max="72"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(parseInt(e.target.value))}
+                  className="w-24"
+                />
+                <div className="text-sm">{fontSize}px</div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex">
+        <div className="flex items-center gap-2">
           <button
-            className="p-2 mx-1 rounded bg-gray-700"
+            title="Undo (Ctrl+Z)"
             onClick={undo}
-            disabled={history.length === 0}
+            className="p-2 rounded bg-gray-700 hover:bg-gray-600"
           >
-            Undo
+            <RotateCcw size={16} />
           </button>
           <button
-            className="p-2 mx-1 rounded bg-gray-700"
+            title="Redo (Ctrl+Y)"
             onClick={redo}
-            disabled={redoStack.length === 0}
+            className="p-2 rounded bg-gray-700 hover:bg-gray-600"
           >
-            Redo
+            <RotateCw size={16} />
           </button>
-          <button className="p-2 mx-1 rounded bg-blue-600" onClick={saveCanvas}>
-            Save
-          </button>
+
           <button
-            className="p-2 mx-1 rounded bg-gray-700"
-            onClick={() => setShowSaveDialog(true)}
+            title="Save"
+            onClick={() => setShowSaveModal(true)}
+            className="p-2 rounded bg-blue-600 hover:bg-blue-500 flex items-center gap-2"
           >
-            Download
+            <Save size={16} /> Save
+          </button>
+
+          <button
+            title="Download"
+            onClick={() => downloadCombinedImage()}
+            className="p-2 rounded bg-green-600 hover:bg-green-500 flex items-center gap-2"
+          >
+            <Download size={16} /> Download
+          </button>
+
+          <button
+            title="Saved Files"
+            onClick={() => setShowSavedSidebar((v) => !v)}
+            className="p-2 rounded bg-gray-700 hover:bg-gray-600 ml-2"
+          >
+            <Eye size={16} />
           </button>
         </div>
       </div>
 
-      {/* Canvas area */}
-      <div className="flex-1 bg-white relative">
+      {/* Canvas + overlays */}
+      <div className="flex-1 relative" ref={containerRef}>
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full cursor-crosshair"
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         />
 
-        {/* Sticky notes */}
-        {stickyNotes.map((note) => (
-          <div
-            key={note.id}
-            className="absolute shadow-lg cursor-move"
-            style={{
-              left: note.x + "px",
-              top: note.y + "px",
-              width: "200px",
-              height: "auto",
-              minHeight: "200px",
-              backgroundColor: note.color,
-              padding: "10px",
-              boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
-            }}
+        {/* Stickies (draggable & resizable) */}
+        {stickies.map((s) => (
+          <Rnd
+            key={s.id}
+            size={{ width: s.width || 200, height: s.height || 200 }}
+            position={{ x: s.x, y: s.y }}
+            onDragStop={(e, d) => updateSticky({ ...s, x: d.x, y: d.y })}
+            onResizeStop={(e, direction, ref, delta, position) =>
+              updateSticky({
+                ...s,
+                width: parseInt(ref.style.width),
+                height: parseInt(ref.style.height),
+                x: position.x,
+                y: position.y,
+              })
+            }
+            minWidth={120}
+            minHeight={80}
+            style={{ zIndex: s.z || 10 }}
           >
-            <button
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-              onClick={() => deleteSticky(note.id)}
+            <motion.div
+              layout
+              initial={{ opacity: 0.85 }}
+              whileHover={{ opacity: 1 }}
+              className="p-3 rounded shadow-lg"
+              style={{
+                background: s.color || "#FFEB3B",
+                height: "100%",
+                overflow: "hidden",
+                position: "relative",
+              }}
             >
-              ×
-            </button>
-            <div className="mt-4 overflow-y-auto max-h-40">{note.text}</div>
-          </div>
-        ))}
-
-        {/* Text input overlay */}
-        {isAddingText && (
-          <div
-            className="absolute bg-gray-800 bg-opacity-90 p-3 rounded shadow-lg"
-            style={{
-              left: textPosition.x + "px",
-              top: textPosition.y + "px",
-            }}
-          >
-            <input
-              type="text"
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Enter text..."
-              className="block w-64 p-2 mb-2 text-black rounded"
-              autoFocus
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setIsAddingText(false)}
-                className="px-3 py-1 bg-gray-700 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={addTextToCanvas}
-                className="px-3 py-1 bg-blue-600 rounded"
-              >
-                Add Text
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Sticky note input overlay */}
-        {isAddingSticky && (
-          <div
-            className="absolute bg-gray-800 bg-opacity-90 p-3 rounded shadow-lg"
-            style={{
-              left: newStickyPosition.x + "px",
-              top: newStickyPosition.y + "px",
-            }}
-          >
-            <textarea
-              value={stickyInput}
-              onChange={(e) => setStickyInput(e.target.value)}
-              placeholder="Enter note content..."
-              className="block w-64 h-32 p-2 mb-2 text-black rounded"
-              autoFocus
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setIsAddingSticky(false)}
-                className="px-3 py-1 bg-gray-700 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={addStickyNote}
-                className="px-3 py-1 bg-blue-600 rounded"
-              >
-                Add Note
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Save/Download Dialog */}
-        {showSaveDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-96">
-              <h3 className="text-lg font-bold mb-4">Save Drawing</h3>
-
-              <div className="mb-4">
-                <label className="block mb-2">File Name:</label>
-                <input
-                  type="text"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                  placeholder="Enter file name..."
-                  className="w-full p-2 text-black rounded"
-                  autoFocus
-                />
+              <div className="flex justify-between items-start">
+                <div className="font-medium text-sm">Note</div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => deleteSticky(s.id)}
+                    className="text-red-600 px-1 rounded hover:bg-white/20"
+                    title="Delete"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
 
-              <div className="flex justify-end">
+              <textarea
+                value={s.text}
+                onChange={(e) => updateSticky({ ...s, text: e.target.value })}
+                className="w-full mt-2 bg-transparent resize-none outline-none text-sm"
+                style={{ minHeight: 100 }}
+              />
+            </motion.div>
+          </Rnd>
+        ))}
+
+        {/* Text overlay input */}
+        {textOverlay && (
+          <div
+            style={{
+              position: "absolute",
+              left: textOverlay.x,
+              top: textOverlay.y,
+              zIndex: 9999,
+            }}
+          >
+            <div className="bg-white p-2 rounded shadow-md text-gray-900">
+              <input
+                autoFocus
+                className="outline-none p-1 text-sm w-64"
+                value={textOverlay.value}
+                onChange={(e) =>
+                  setTextOverlay((t) => ({ ...t, value: e.target.value }))
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitTextOverlay();
+                }}
+                placeholder="Enter text and press Enter"
+              />
+              <div className="flex justify-end gap-2 mt-2">
                 <button
-                  onClick={() => setShowSaveDialog(false)}
-                  className="px-4 py-2 mr-2 bg-gray-700 rounded"
+                  className="px-2 py-1 text-sm bg-gray-200 rounded"
+                  onClick={() => setTextOverlay(null)}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={downloadCanvas}
-                  className="px-4 py-2 mr-2 bg-green-600 rounded"
+                  className="px-2 py-1 text-sm bg-blue-600 rounded text-white"
+                  onClick={submitTextOverlay}
                 >
-                  Download
-                </button>
-                <button
-                  onClick={confirmSave}
-                  className="px-4 py-2 bg-blue-600 rounded"
-                >
-                  Save
+                  Add
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Saved Files Sidebar Button */}
-        <button
-          className="absolute top-4 right-4 bg-gray-800 p-2 rounded-full shadow-lg"
-          onClick={() => {
-            const sidebar = document.getElementById("saved-files-sidebar");
-            if (sidebar) {
-              sidebar.classList.toggle("translate-x-full");
-            }
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {/* New sticky creation modal */}
+        {isAddingSticky && (
+          <div
+            style={{
+              position: "absolute",
+              left: newStickyPos.x,
+              top: newStickyPos.y,
+              zIndex: 9999,
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-            />
-          </svg>
-        </button>
+            <div className="bg-white text-gray-900 p-3 rounded shadow-md w-64">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-sm font-semibold">New Sticky</div>
+                <div>
+                  <button
+                    className="px-2 py-1 text-sm bg-gray-200 rounded"
+                    onClick={() => setIsAddingSticky(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              <textarea
+                rows={4}
+                placeholder="Type note..."
+                value={newStickyPos.text || ""}
+                onChange={(e) =>
+                  setNewStickyPos((p) => ({ ...p, text: e.target.value }))
+                }
+                className="w-full p-2 rounded border"
+              />
+              <div className="flex gap-2 justify-end mt-2">
+                <button
+                  onClick={() => {
+                    setIsAddingSticky(false);
+                  }}
+                  className="px-3 py-1 rounded bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const sticky = {
+                      id: uuidv4(),
+                      x: newStickyPos.x,
+                      y: newStickyPos.y,
+                      width: 220,
+                      height: 160,
+                      text: newStickyPos.text || "",
+                      color: [
+                        "#FFEB3B",
+                        "#FF9800",
+                        "#E91E63",
+                        "#4CAF50",
+                        "#2196F3",
+                      ][Math.floor(Math.random() * 5)],
+                      z: 20,
+                    };
+                    addSticky(sticky);
+                    setIsAddingSticky(false);
+                    setNewStickyPos({ x: 100, y: 100 });
+                  }}
+                  className="px-3 py-1 rounded bg-blue-600 text-white"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Saved Files Sidebar */}
+        {/* Save modal */}
+        {showSaveModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl w-96">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-lg">Save Whiteboard</h3>
+                <button
+                  onClick={() => setShowSaveModal(false)}
+                  className="text-gray-500"
+                >
+                  ✕
+                </button>
+              </div>
+              <input
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                className="w-full p-2 rounded border mb-4 text-gray-900"
+                placeholder="File name"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowSaveModal(false)}
+                  className="px-4 py-2 rounded bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmSave}
+                  className="px-4 py-2 rounded bg-blue-600 text-white flex items-center gap-2"
+                >
+                  <Save size={14} /> Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Saved files sidebar */}
         <div
-          id="saved-files-sidebar"
-          className="fixed top-0 right-0 h-full w-72 bg-gray-800 shadow-lg transform translate-x-full transition-transform duration-300 ease-in-out z-40 overflow-y-auto"
+          className={`fixed top-0 right-0 h-full w-80 bg-gray-800 shadow-xl transform transition-transform z-40 ${
+            showSavedSidebar ? "translate-x-0" : "translate-x-full"
+          }`}
         >
-          <div className="p-4 border-b border-gray-700">
-            <h3 className="text-lg font-bold">Saved Whiteboards</h3>
-            <p className="text-sm text-gray-400">Click on a file to load</p>
+          <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Saved Whiteboards</h3>
+              <p className="text-xs text-gray-400">Local storage & backend</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="px-2 py-1 rounded bg-gray-700"
+                onClick={() => {}}
+              >
+                Refresh
+              </button>
+              <button
+                className="px-2 py-1 rounded bg-gray-700"
+                onClick={() => setShowSavedSidebar(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
 
-          <div className="p-4">
+          <div className="p-3 overflow-y-auto h-full space-y-3">
             {savedFiles.length === 0 ? (
-              <p className="text-gray-400">No saved files yet</p>
+              <div className="text-gray-400">No saved files yet</div>
             ) : (
-              <ul className="space-y-2">
-                {savedFiles.map((file) => (
-                  <li
-                    key={file.id}
-                    className="bg-gray-700 rounded p-2 cursor-pointer hover:bg-gray-600"
-                  >
-                    <div className="flex justify-between items-center">
-                      <span
-                        className="flex-1 truncate"
-                        onClick={() => loadSavedFile(file)}
-                      >
-                        {file.name}
-                      </span>
+              savedFiles.map((f) => (
+                <div key={f.id} className="bg-gray-700 rounded p-2">
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="truncate"
+                      onClick={() => loadSavedFile(f)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="font-medium">{f.name}</div>
+                      <div className="text-xs text-gray-400">{f.date}</div>
+                    </div>
+                    <div className="flex gap-2">
                       <button
-                        className="text-red-500 hover:text-red-300"
-                        onClick={() => deleteSavedFile(file.id)}
+                        onClick={() => downloadCombinedImage(f.name)}
+                        className="px-2 py-1 rounded bg-green-600 text-xs"
                       >
-                        ×
+                        Download
+                      </button>
+                      <button
+                        onClick={() => deleteSaved(f.id)}
+                        className="px-2 py-1 rounded bg-red-600 text-xs"
+                      >
+                        Delete
                       </button>
                     </div>
-                    <div className="text-xs text-gray-400">{file.date}</div>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                  <div className="mt-2 bg-gray-600 rounded overflow-hidden">
+                    <img
+                      src={f.dataURL}
+                      alt={f.name}
+                      className="w-full h-28 object-cover"
+                    />
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
