@@ -29,7 +29,7 @@ const StepChallenges = ({ formData, setFormData }) => {
 
     try {
       const response = await axios.post(
-        "https://learning-pod-e3wo.onrender.com/api/ai_generated_path",
+        "http://localhost:8000/api/ai_generated_path",
         formData,
         {
           headers: {
@@ -99,13 +99,45 @@ const StepChallenges = ({ formData, setFormData }) => {
           <option value="Structured Plan">Structured Plan</option>
           <option value="Other">Other</option>
         </select>
-        {/* Next Button */}
+
+        {/* Generate Roadmap Button */}
         <div className="flex justify-end mt-12">
           <button
-            onClick={() => handleGenerateRoadmap()}
-            className="px-6 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-all duration-300 dark:bg-purple-600 dark:hover:bg-purple-700"
+            onClick={handleGenerateRoadmap}
+            disabled={isLoading}
+            className={`px-6 py-2 font-semibold rounded-lg transition-all duration-300 text-white ${
+              isLoading
+                ? "bg-purple-400 cursor-not-allowed"
+                : "bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700"
+            }`}
           >
-            Generate Roadmap
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+                <span>Generating...</span>
+              </div>
+            ) : (
+              "Generate Roadmap"
+            )}
           </button>
         </div>
       </div>

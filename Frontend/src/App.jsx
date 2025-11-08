@@ -43,6 +43,7 @@ function MainLayout() {
             <Route path="/roadmap-list" element={<RoadmapList />} />
             <Route path="/form" element={<MultiStepForm />} />
             <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/roadmap/:id" element={<Roadmap />} />
             <Route path="/static-roadmap" element={<RoadmapComponent />} />
             <Route path="/whiteboard" element={<WhiteBoard />} />
             <Route path="/pod" element={<Pod />} />

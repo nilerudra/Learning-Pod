@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const GeneratedRoadmapSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
- 
   userName: { type: String, required: true },
   roadmap: {
     title: { type: String, required: true },
@@ -12,6 +11,8 @@ const GeneratedRoadmapSchema = new mongoose.Schema({
         phaseName: { type: String, required: true },
         description: { type: String, required: true },
         actionableSteps: [String],
+        completedSteps: { type: [Number], default: [] }, // ✅ store completed step indices
+        quizCompleted: { type: Boolean, default: false }, // ✅ track if quiz taken
         recommendedCourses: [
           {
             platform: { type: String, required: true },
@@ -37,7 +38,6 @@ const GeneratedRoadmapSchema = new mongoose.Schema({
     },
   },
   createdAt: { type: Date, default: Date.now },
-  
-},{ timestamps: true });
+}, { timestamps: true });
 
 export default mongoose.model("GeneratedRoadmap", GeneratedRoadmapSchema);
