@@ -71,27 +71,29 @@ const Chatbot = () => {
 
       {/* Chat Popup */}
       {isOpen && (
-        <div className="fixed bottom-16 right-5 w-100 bg-gray-800 shadow-lg rounded-lg border p-4 z-1000">
+        <div className="fixed bottom-20 right-6 w-96 bg-gradient-to-br from-[#111827] via-[#1f2937] to-[#0f172a] border border-gray-700 shadow-xl rounded-2xl p-4 z-[1000] backdrop-blur-lg text-gray-200 animate-fadeIn">
           {/* Chat Header */}
-          <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="text-lg font-bold">AI Chatbot</h2>
+          <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+            <h2 className="text-lg font-semibold bg-gradient-to-r from-purple-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
+              AI Chatbot 🤖
+            </h2>
             <button
               onClick={toggleChat}
-              className="text-gray-500 hover:text-red-500"
+              className="text-gray-400 hover:text-red-500 transition-all"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Chat Messages */}
-          <div className="h-60 overflow-y-auto space-y-2 p-2">
+          <div className="h-64 overflow-y-auto space-y-3 mt-3 p-2 custom-scrollbar">
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`p-2 rounded-lg max-w-[80%] ${
+                className={`p-2 px-3 rounded-lg text-sm max-w-[80%] break-words ${
                   msg.sender === "user"
-                    ? "bg-blue-500 text-white self-end ml-auto"
-                    : "bg-gray-200 text-black"
+                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white ml-auto"
+                    : "bg-gray-700/80 text-gray-100"
                 }`}
               >
                 {msg.text}
@@ -100,10 +102,10 @@ const Chatbot = () => {
           </div>
 
           {/* Chat Input */}
-          <div className="flex items-center border-t pt-2">
+          <div className="flex items-center mt-3 border-t border-gray-700 pt-2">
             <input
               type="text"
-              className="w-full p-2 border rounded-lg"
+              className="w-full bg-[#0f172a] border border-gray-700 text-gray-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-violet-500 transition-all"
               placeholder="Ask something..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -111,9 +113,9 @@ const Chatbot = () => {
             />
             <button
               onClick={sendMessage}
-              className="ml-2 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent hover:bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent"
+              className="ml-2 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 hover:opacity-80 transition-all p-2 rounded-lg"
             >
-              <Send size={20} />
+              <Send size={18} className="text-white" />
             </button>
           </div>
         </div>

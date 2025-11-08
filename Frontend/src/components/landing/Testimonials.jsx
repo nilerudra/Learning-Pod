@@ -24,7 +24,7 @@ const testimonials = [
   },
 ];
 
-const TestimonialCard = ({ testimonial, index, darkMode }) => {
+const TestimonialCard = ({ testimonial, index }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -37,9 +37,7 @@ const TestimonialCard = ({ testimonial, index, darkMode }) => {
 
   return (
     <div
-      className={`p-6 ${
-        darkMode ? "bg-gray-800 text-white" : "bg-white"
-      } rounded-lg shadow-md transition-all duration-500 transform ${
+      className={`p-6 bg-gray-800 text-white rounded-lg shadow-md transition-all duration-500 transform ${
         isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
       } hover:scale-105`}
     >
@@ -61,34 +59,23 @@ const TestimonialCard = ({ testimonial, index, darkMode }) => {
       <h4 className="font-semibold mt-3 text-center text-xl">
         {testimonial.name}
       </h4>
-      <p
-        className={`text-sm ${
-          darkMode ? "text-gray-400" : "text-gray-500"
-        } text-center`}
-      >
-        {testimonial.role}
-      </p>
+      <p className="text-sm text-gray-400 text-center">{testimonial.role}</p>
     </div>
   );
 };
 
-const Testimonials = ({ darkMode }) => {
+const Testimonials = () => {
   return (
     <div className="flex flex-col items-center p-6">
       {/* Header */}
-      <h2 className="text-3xl font-bold text-center mb-8 dark:text-white text-gray-800">
+      <h2 className="text-3xl font-bold text-center mb-8 text-white">
         What Our Users Say
       </h2>
 
       {/* Testimonials Grid - Only Show 3 Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full">
         {testimonials.map((t, index) => (
-          <TestimonialCard
-            key={index}
-            testimonial={t}
-            index={index}
-            darkMode={darkMode}
-          />
+          <TestimonialCard key={index} testimonial={t} index={index} />
         ))}
       </div>
     </div>

@@ -58,29 +58,12 @@ const Navbar = () => {
             autoplay
           />
         </div>
-        <span
-          className={`text-sm md:text-lg font-bold uppercase tracking-wider ${
-            theme === "dark"
-              ? "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent"
-              : "text-blue-600"
-          } transition-colors`}
-        >
+        <span className="text-sm md:text-lg font-bold uppercase tracking-wider bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent transition-colors">
           Learning Pod
         </span>
       </div>
 
-      <div className="flex items-center gap-x-4 relative">
-        <button
-          onClick={toggleTheme}
-          className={`p-2 rounded-full cursor-pointer ${
-            theme === "dark"
-              ? "bg-gray-700 text-yellow-300"
-              : "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-        </button>
-
+      <div className="flex items-center relative">
         {user ? (
           <div className="relative" ref={dropdownRef}>
             <img
@@ -90,14 +73,15 @@ const Navbar = () => {
               onClick={() => setIsOpen(!isOpen)}
             />
             {isOpen && (
-              <div className="absolute right-0 mt-4 w-54 shadow-md shadow-gray-300 rounded-lg p-2 bg-white text-black">
-                <div className="p-3 border-b-1 border-gray-300">
-                  <p className="font-semibold">{user.name}</p>
+              <div className="absolute right-0 mt-4 w-56 rounded-xl shadow-lg shadow-[#0f172a]/70 bg-gradient-to-br from-[#1f2937] via-[#111827] to-[#0f172a] border border-gray-700 text-gray-200 backdrop-blur-md transition-all duration-300">
+                <div className="p-3 border-b border-gray-700">
+                  <p className="font-semibold text-white">{user.name}</p>
                   <p className="text-sm text-gray-400">{user.email}</p>
                 </div>
+
                 <ul className="flex flex-col p-2">
                   <li
-                    className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer"
+                    className="py-2 px-4 flex items-center gap-2 rounded-md hover:bg-gradient-to-r from-violet-600 to-blue-600 hover:text-white transition-all cursor-pointer"
                     onClick={() => {
                       navigate("/dashboard");
                       setIsOpen(!isOpen);
@@ -110,19 +94,20 @@ const Navbar = () => {
                       navigate("/profile");
                       setIsOpen(!isOpen);
                     }}
-                    className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer"
+                    className="py-2 px-4 flex items-center gap-2 rounded-md hover:bg-gradient-to-r from-violet-600 to-blue-600 hover:text-white transition-all cursor-pointer"
                   >
                     <User size={18} /> View Profile
                   </li>
-                  <li className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer">
+                  <li className="py-2 px-4 flex items-center gap-2 rounded-md hover:bg-gradient-to-r from-violet-600 to-blue-600 hover:text-white transition-all cursor-pointer">
                     <Settings size={18} /> Settings
                   </li>
-                  <li className="py-2 px-4 flex items-center gap-2 hover:bg-gray-200 cursor-pointer">
+                  <li className="py-2 px-4 flex items-center gap-2 rounded-md hover:bg-gradient-to-r from-violet-600 to-blue-600 hover:text-white transition-all cursor-pointer">
                     <HelpCircle size={18} /> Help
                   </li>
                 </ul>
+
                 <div
-                  className="py-2 px-4 flex items-center gap-2 text-red-500 hover:bg-red-50 cursor-pointer"
+                  className="py-2 px-4 flex items-center gap-2 rounded-md text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all cursor-pointer"
                   onClick={handleLogout}
                 >
                   <LogOut size={18} /> Logout
