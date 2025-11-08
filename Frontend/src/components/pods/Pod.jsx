@@ -9,21 +9,26 @@ export default function Pod() {
     setSelectedPod(pod);
   };
 
-  const styles = {
-    podContainerStyle: {
-      display: "grid",
-      gridTemplateColumns: "25% 75%",
-      backgroundColor: "transparent",
-      color: "#fff",
-      height: "100vh",
-      boxSizing: "border-box",
-    },
-  };
-
   return (
-    <div className="pod-container" style={styles.podContainerStyle}>
-      <PodList onSelectPod={handleSelectPod} />
-      <ChatContainer pod={selectedPod} isOpen={!!selectedPod} />
+    <div className="w-full h-full flex flex-col md:flex-row bg-transparent text-white">
+      {/* Pod List */}
+      <div
+        className={`
+          w-full md:w-1/4  
+          ${selectedPod ? "md:block hidden" : "block"} 
+          overflow-y-auto
+          border-r border-gray-700
+        `}
+      >
+        <PodList onSelectPod={handleSelectPod} />
+      </div>
+
+      {/* Chat Container */}
+      {selectedPod && (
+        <div className="w-full md:w-3/4 h-full">
+          <ChatContainer pod={selectedPod} isOpen={!!selectedPod} />
+        </div>
+      )}
     </div>
   );
 }

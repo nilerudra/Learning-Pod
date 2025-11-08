@@ -18,22 +18,23 @@ const Home = () => {
           className="flex items-center mb-6"
         >
           <Sparkles
-            className="mr-3 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent"
+            className="mr-3 text-purple-500 hover:text-violet-400 transition-colors duration-300"
             size={40}
           />
+
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent">
             AI Roadmap Generator
           </h1>
         </motion.div>
 
-        <p className="text-xl text-gray-700 dark:text-gray-500 max-w-2xl mt-4">
+        <p className="text-xl text-gray-400 max-w-2xl mb-4">
           Craft a personalized learning journey tailored to your goals.
         </p>
 
         <Link to="/form">
           <motion.button
             whileHover={{ scale: 1.05 }}
-            className="mt-6 px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 flex items-center space-x-2"
+            className="flex items-center space-x-2 p-4 m-4 rounded-md bg-gradient-to-tr from-purple-500 to-indigo-500 text-white font-semibold shadow-md hover:shadow-purple-500/40 hover:scale-105 transition-all duration-300 cursor-pointer"
           >
             <Target size={20} />
             <span>Create Your Roadmap</span>

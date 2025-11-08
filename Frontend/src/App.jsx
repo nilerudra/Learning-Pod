@@ -1,16 +1,13 @@
 import React from "react";
+import "./App.css";
 import { ToastContainer } from "react-toastify";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./App.css";
-import Landing from "./components/landing/Landing";
 import Dashboard from "./components/dashboard/Dashboard";
 import { ThemeProvider } from "./context/ThemeContext";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Navbar from "./components/Navbar";
-
 import RoadmapComponent from "./components/Static-Roadmap/StaticRoadmap";
 import RoadmapList from "./components/Static-Roadmap/RoadmapList";
-
 import Home from "./components/RoadMap/pages/Home";
 import MultiStepForm from "./components/RoadMap/pages/MultiStepForm";
 import Roadmap from "./components/RoadMap/pages/Roadmap";
@@ -27,6 +24,7 @@ import TaskSubmission from "./components/submissions/TaskSubmission";
 import LearnNow from "./components/RoadMap/learn_now/LearnNow";
 import TakeQuiz from "./components/RoadMap/Quiz/TakeQuiz";
 import Profile from "./components/Profile/Profile";
+import LearningPod from "./components/landing/Landing";
 
 function MainLayout() {
   return (
@@ -72,7 +70,7 @@ function App() {
       <Router>
         <Routes>
           {/* Landing Page without Navbar & Sidebar */}
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<LearningPod />} />
 
           {/* Main layout for dashboard & other pages */}
           <Route path="/*" element={<MainLayout />} />

@@ -108,8 +108,8 @@ body {
 
 /* ✅ Content Area */
 .content {
-  margin-left: 46px;
-  margin-top: 70px;
+  margin-left: 50px;
+  margin-top: 50px;
   flex-grow: 1;
   transition: margin-left 0.3s ease, background 0.3s ease;
   padding: 20px;

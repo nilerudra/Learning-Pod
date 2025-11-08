@@ -32,6 +32,16 @@ export default function PodList() {
     }
   }, [userId]);
 
+  // Generate initials if no photo
+  const getInitials = (fullName) => {
+    if (!fullName) return "";
+    const names = fullName.trim().split(" ");
+    return names
+      .map((n) => n[0].toUpperCase())
+      .join("")
+      .slice(0, 2);
+  };
+
   return (
     <>
       {/* Pods Section */}
@@ -50,9 +60,9 @@ export default function PodList() {
             {userPods.slice(0, visiblePods).map((pods, index) => (
               <div
                 key={index}
-                className="relative p-6 rounded-2xl bg-transparent dark:shadow-sm shadow-gray-300 hover:shadow-md hover:shadow-gray-300 hover:scale-103 transition-all duration-300 flex flex-col justify-between"
+                className="relative cursor-pointer p-4 rounded-2xl bg-gradient-to-br from-[#111827] via-[#1f2937] to-[#0f172a] border border-gray-700 shadow-lg hover:scale-105 transition-transform duration-300"
               >
-                <div>
+                <div className="flex items-center space-x-4 mb-4">
                   <div
                     className="absolute top-4 right-4 cursor-pointer"
                     title="Copy Code"
@@ -60,17 +70,29 @@ export default function PodList() {
                       navigator.clipboard.writeText(pods.unique_code)
                     }
                   >
-                    <Copy className="w-5 h-5 text-gray-500 hover:text-black transition" />
+                    <Copy className="w-5 h-5 text-gray-500 hover:text-white transition" />
                   </div>
-                  <div className="w-12 h-12 p-3 rounded-xl bg-gray-100 dark:bg-gray-200 flex items-center justify-center">
-                    {pods.icon}
+                  <div className="flex">
+                    {pods.photo ? (
+                      <img
+                        src={pods.photo}
+                        alt="Profile"
+                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-700"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center bg-purple-600 text-white text-xl font-bold border-2 border-gray-700">
+                        {getInitials(pods.pod_name)}
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-gray-500 font-semibold dark:text-gray-400 mt-4">
-                    {pods.pod_name}
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">
-                    {pods.pod_description}
-                  </p>
+                  <div className="flex flex-col">
+                    <h3 className="text-gray-500 font-semibold dark:text-gray-400">
+                      {pods.pod_name}
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      {pods.pod_description}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => navigate(`/pod`)}

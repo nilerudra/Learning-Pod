@@ -13,8 +13,7 @@ import Footer from "../Footer";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import Testimonials from "./Testimonials";
 
-const FirstStepAI = () => {
-  const [darkMode, setDarkMode] = useState(false);
+const LearningPod = () => {
   const [heroVisible, setHeroVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   // const { setUser } = useAuth();
@@ -68,10 +67,6 @@ const FirstStepAI = () => {
     };
   }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
   // Auth
   const handleLogin = async () => {
     try {
@@ -112,18 +107,12 @@ const FirstStepAI = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-      }`}
-    >
+    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-r from-[#111827] via-[#1f2937] to-[#0f172a] text-white">
       {/* Navigation */}
       <nav
-        className={`flex items-center justify-between px-6 py-4 ${
-          darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        } border-b transition-all duration-300 ${
+        className={`flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#111827] via-[#1f2937] to-[#0f172a] border-gray-200 border-b transition-all duration-300 ${
           menuVisible ? "opacity-100" : "opacity-0"
-        }`}
+        } `}
       >
         <div className="flex items-center">
           <div
@@ -135,34 +124,14 @@ const FirstStepAI = () => {
               autoplay
             />
           </div>
-          <span
-            className={`text-xl font-bold ${
-              darkMode
-                ? "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent"
-                : "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent"
-            } transition-colors`}
-          >
+          <span className="text-lg font-bold uppercase tracking-wider bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent transition-colors">
             Learning Pod
           </span>
         </div>
 
         <div className="flex items-center space-x-4">
           <button
-            onClick={toggleDarkMode}
-            className={`p-2 rounded-full ${
-              darkMode
-                ? "bg-gray-700 text-yellow-300"
-                : "bg-gray-100 text-gray-700"
-            } transition-colors`}
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button
-            className={`${
-              darkMode
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-blue-600 hover:bg-blue-700"
-            } text-white px-6 py-2 rounded-full transition-colors cursor-pointer`}
+            className="px-4 py-2 rounded-md bg-gradient-to-tr from-purple-500 to-indigo-500 text-white font-semibold shadow-md hover:shadow-purple-500/40 hover:scale-105 transition-all duration-300 cursor-pointer"
             onClick={handleLogin}
           >
             Login
@@ -171,33 +140,37 @@ const FirstStepAI = () => {
       </nav>
 
       {showRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-[90%] max-w-sm text-center">
-            <h2 className="text-lg font-bold mb-4">Select Your Role</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
+          <div className="bg-gradient-to-br from-[#1f2937] via-[#111827] to-[#0f172a] rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-2xl border border-gray-700">
+            <h2 className="text-xl font-semibold mb-6 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent">
+              Select Your Role
+            </h2>
+
             <div className="flex justify-around">
               <button
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="px-5 py-2 cursor-pointer rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 hover:from-violet-700 hover:to-blue-700 transition-all transform hover:scale-105 shadow-md"
                 onClick={() => handleRoleSelect("student")}
               >
                 Student
               </button>
+
               <button
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                className="px-5 py-2 cursor-pointer rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-emerald-700 hover:to-green-700 transition-all transform hover:scale-105 shadow-md"
                 onClick={() => handleRoleSelect("teacher")}
               >
                 Teacher
               </button>
             </div>
+
+            <p className="mt-5 text-sm text-gray-400">
+              Choose your role to continue your journey 🚀
+            </p>
           </div>
         </div>
       )}
 
       {/* Hero Section */}
-      <div
-        className={`relative py-16 px-6 overflow-hidden ${
-          darkMode ? "bg-gray-800" : "bg-gray-50"
-        } transition-colors duration-300`}
-      >
+      <div className="relative py-16 px-6 overflow-hidden bg-gray-800 transition-colors duration-300">
         <div
           className={`max-w-6xl mx-auto relative z-10 transition-all duration-700 transform ${
             heroVisible
@@ -206,12 +179,8 @@ const FirstStepAI = () => {
           }`}
         >
           <div className="flex items-center mb-6">
-            <span className="text-amber-500 mr-2">✨</span>
-            <span
-              className={`${
-                darkMode ? "text-gray-300" : "text-gray-600"
-              } transition-colors`}
-            >
+            <span className="mr-2">✨</span>
+            <span className="text-gray-300 transition-colors">
               AI-Powered Career Guidance
             </span>
           </div>
@@ -220,44 +189,21 @@ const FirstStepAI = () => {
             <div>
               <h1 className="text-5xl font-bold mb-4">
                 Discover Your <br />
-                <span
-                  className={`${
-                    darkMode
-                      ? "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent"
-                      : "bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent"
-                  } transition-colors text-5xl font-extrabold block mt-2`}
-                >
+                <span className="bg-gradient-to-tr from-purple-500 to-indigo-500 bg-clip-text text-transparent transition-colors text-5xl font-extrabold block mt-2">
                   {text}
                   <span className="animate-blink">|</span>{" "}
                 </span>
               </h1>
-              <p
-                className={`${
-                  darkMode ? "text-gray-300" : "text-gray-600"
-                } text-lg mb-8 transition-colors`}
-              >
+              <p className="text-gray-300 text-lg mb-8 transition-colors">
                 Let AI guide you to the perfect career path. Transform your
                 future with data-driven direction.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleLogin}
-                  className={`cursor-pointer ${
-                    darkMode
-                      ? "bg-blue-600 hover:bg-blue-700"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  } text-white px-6 py-3 rounded-full transition-all transform hover:scale-105 flex items-center justify-center`}
+                  className="px-6 py-3 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 text-white font-semibold shadow-md hover:shadow-purple-500/40 hover:scale-105 transition-all duration-300 cursor-pointer"
                 >
                   Start Your Journey <span className="ml-2">→</span>
-                </button>
-                <button
-                  className={`border cursor-pointer ${
-                    darkMode
-                      ? "border-blue-500 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent hover:bg-blue-900"
-                      : "border-blue-600 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500  bg-clip-text text-transparent hover:bg-blue-50"
-                  } px-6 py-3 rounded-full transition-all transform hover:scale-105`}
-                >
-                  Learn More
                 </button>
               </div>
             </div>
@@ -286,7 +232,6 @@ const FirstStepAI = () => {
               title="Career Path Suggestion"
               description="Get personalized career path recommendations based on your skills and interests."
               index={0}
-              darkMode={darkMode}
             />
 
             <FeatureCard
@@ -294,7 +239,6 @@ const FirstStepAI = () => {
               title="Salary Insights"
               description="Access real-time job market data and salary estimates for your chosen career path."
               index={1}
-              darkMode={darkMode}
             />
 
             <FeatureCard
@@ -302,11 +246,10 @@ const FirstStepAI = () => {
               title="Learning Roadmap"
               description="Follow a step-by-step guide to achieve your career goals with milestone tracking."
               index={2}
-              darkMode={darkMode}
             />
           </div>
           <div>
-            <Testimonials darkMode={darkMode} />
+            <Testimonials />
           </div>
         </div>
       </div>
@@ -315,4 +258,4 @@ const FirstStepAI = () => {
   );
 };
 
-export default FirstStepAI;
+export default LearningPod;

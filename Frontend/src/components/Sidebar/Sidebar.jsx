@@ -55,18 +55,7 @@ const Sidebar = () => {
   return (
     <aside
       ref={sidebarRef}
-      className={`fixed left-0 top-16 h-full flex flex-col py-4 transition-all duration-300
-      shadow-lg border-t-1 border-gray-300 z-1000
-      ${
-        expanded
-          ? theme === "dark"
-            ? "w-48 px-4 bg-gray-900"
-            : "w-48 px-4 bg-white"
-          : theme === "dark"
-          ? "w-16 px-2 bg-gray-900"
-          : "w-16 px-2 bg-white"
-      }
-      ${theme === "dark" ? "text-white" : "text-gray-900"}`}
+      className="fixed p-2 bg-gradient-to-r from-[#111827] via-[#1f2937] to-[#0f172a] shadow-lg shadow-blue-500/10 border border-white/10 left-0 top-16 h-full flex flex-col transition-all duration-300 z-1000"
     >
       {/* Toggle Button */}
       <button

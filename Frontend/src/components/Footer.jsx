@@ -16,7 +16,7 @@ const Footer = () => {
         {/* Left Section - Brand & Copyright */}
         <div className="text-gray-600 dark:text-gray-400 text-center md:text-left">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            Team Vikrant
+            Learning Pod
           </h2>
           <p className="text-sm">
             © {new Date().getFullYear()} All rights reserved.
