@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import ProfileHeader from "./ProfileHeader";
 
 const Profile = () => {
@@ -10,7 +11,9 @@ const Profile = () => {
   const userId = localStorage.getItem("userId");
   const [totalRoadmaps, setTotalRoadmaps] = useState(0);
   const [visibleRoadmaps, setVisibleRoadmaps] = useState(3);
+  const navigate = useNavigate();
 
+  // ✅ Fetch roadmaps
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
@@ -18,13 +21,12 @@ const Profile = () => {
     const fetchRoadmaps = async () => {
       try {
         const res = await axios.get(
-          //   `https://learning-pod-e3wo.onrender.com/api/roadmap/get-all/${userId}`
           `http://localhost:8000/api/roadmap/get-all/${userId}`
         );
 
         setRoadmaps(res.data.formattedRoadmaps || []);
         setTotalRoadmaps(res.data.totalRoadmaps);
-        console.log(res.data.totalRoadmaps);
+        console.log("Fetched roadmaps:", res.data.formattedRoadmaps);
       } catch (error) {
         console.error("Error fetching user roadmaps:", error);
         setRoadmaps([]);
@@ -35,6 +37,29 @@ const Profile = () => {
 
     if (userId) fetchRoadmaps();
   }, [userId]);
+
+  // ✅ Handle click to open roadmap details
+  const handleRoadmapClick = async (id) => {
+    try {
+      console.log("Fetching roadmap ID:", id);
+      if (!id) {
+        alert("Invalid roadmap ID!");
+        return;
+      }
+
+      const response = await axios.get(
+        `http://localhost:8000/api/roadmap/full/${id}`
+      );
+
+      // ✅ Save full roadmap details to localStorage
+      localStorage.setItem("selectedRoadmap", JSON.stringify(response.data));
+
+      // ✅ Redirect to roadmap details page
+      navigate(`/roadmap/${id}`);
+    } catch (error) {
+      console.error("Error fetching full roadmap:", error);
+    }
+  };
 
   return (
     <div className="p-8 text-white">
@@ -60,11 +85,13 @@ const Profile = () => {
                 <motion.div
                   key={index}
                   whileHover={{ scale: 1.04 }}
-                  className="bg-transparent border-2 border-gray-300 dark:border-gray-700 rounded-xl p-6 shadow-md hover:shadow-lg transition-all"
+                  onClick={() => handleRoadmapClick(rm.id)} // ✅ send ID from backend
+                  className="cursor-pointer bg-transparent border-2 border-gray-300 dark:border-gray-700 rounded-xl p-6 shadow-md hover:shadow-lg transition-all"
                 >
                   <h3 className="text-xl font-semibold bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent mb-2">
                     {rm.title}
                   </h3>
+
                   <p className="text-gray-400 mb-2">
                     <strong className="text-gray-300">Created At: </strong>
                     {new Date(rm.createdAt).toLocaleDateString()}

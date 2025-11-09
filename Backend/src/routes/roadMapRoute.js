@@ -36,8 +36,9 @@ router.get("/get-all/:userId", async (req, res) => {
 
   try {
     const roadmaps = await Roadmap.find({ userId }).sort({ createdAt: -1 });
-
+    
     const formattedRoadmaps = roadmaps.map((roadmap) => ({
+      id: roadmap._id,
       title: roadmap.roadmap?.title,
       author: roadmap.userName,
       createdAt: roadmap.createdAt,
