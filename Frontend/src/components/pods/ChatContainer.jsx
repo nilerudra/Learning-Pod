@@ -113,7 +113,7 @@ export default function ChatContainer({ pod, isOpen }) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] w-full max-w-4xl mx-auto bg-gray-900 text-gray-200 rounded-xl border border-gray-800 shadow-lg overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-80px)] ml-2 w-full max-w-4xl mx-auto bg-gray-900 text-gray-200 rounded-xl border border-gray-800 shadow-lg overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between bg-gray-800 px-4 py-2 border-b border-gray-700 cursor-pointer"

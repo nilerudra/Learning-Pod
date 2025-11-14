@@ -1,14 +1,12 @@
 import React from "react";
 import { Trophy, BookOpen } from "lucide-react";
 
-export default function ProfileHeader({ user, totalRoadmaps }) {
+export default function ProfileHeader({ user, totalRoadmaps, totalCompleted }) {
   return (
     <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-r from-[#111827] via-[#1f2937] to-[#0f172a] shadow-lg shadow-blue-500/10 border border-white/10 p-6">
-      {/* Glow background */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-green-400/10 to-transparent blur-3xl opacity-30" />
 
       <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6">
-        {/* Left: Avatar + Info */}
         <div className="flex items-center gap-5 text-white">
           <div className="relative">
             <img
@@ -27,7 +25,6 @@ export default function ProfileHeader({ user, totalRoadmaps }) {
           </div>
         </div>
 
-        {/* Right: Quick Stats */}
         <div className="flex flex-col sm:flex-row gap-8 text-center text-white">
           <div className="bg-gradient-to-tr from-blue-600/20 to-transparent p-4 rounded-xl border border-blue-500/20 hover:scale-105 transition">
             <div className="flex items-center justify-center gap-2">
@@ -45,7 +42,7 @@ export default function ProfileHeader({ user, totalRoadmaps }) {
             <div className="flex items-center justify-center gap-2">
               <Trophy className="text-green-400" size={22} />
               <h3 className="text-2xl font-bold text-green-400">
-                {user.completedTopics || 0}
+                {totalCompleted}
               </h3>
             </div>
             <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">

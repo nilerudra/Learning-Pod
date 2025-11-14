@@ -5,7 +5,6 @@ import GeneratedRoadmap from "../models/GeneratedRoadmap.js";
 
 dotenv.config();
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
 import RoadmapForm from "../models/RoadmapForm.js";
 
 const router = express.Router();
@@ -15,10 +14,7 @@ router.post("/", async (req, res) => {
   try {
     const formData = req.body;
 
-    console.log(formData);
-
     const roadmap = new RoadmapForm(formData);
-
     await roadmap.save();
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLEAPI_KEY);
@@ -168,7 +164,7 @@ router.post("/", async (req, res) => {
       throw new Error("Failed to extract valid JSON from AI response.");
     }
 
-    const cleanedJson = jsonMatch[0]; // Extracted JSON content
+    const cleanedJson = jsonMatch[0];
     const generatedRoadmap = JSON.parse(cleanedJson);
 
     const savedRoadmap = new GeneratedRoadmap(generatedRoadmap);

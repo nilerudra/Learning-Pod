@@ -5,8 +5,6 @@ const router = express.Router();
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
 
-  console.log("Received userId:", userId);
-
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
@@ -26,7 +24,6 @@ router.get("/:userId", async (req, res) => {
     });
   }
 });
-
 router.get("/get-all/:userId", async (req, res) => {
   const { userId } = req.params;
 
@@ -36,19 +33,53 @@ router.get("/get-all/:userId", async (req, res) => {
 
   try {
     const roadmaps = await Roadmap.find({ userId }).sort({ createdAt: -1 });
-    
-    const formattedRoadmaps = roadmaps.map((roadmap) => ({
-      id: roadmap._id,
-      title: roadmap.roadmap?.title,
-      author: roadmap.userName,
-      createdAt: roadmap.createdAt,
-      keySkills:
-        roadmap.roadmap?.phases?.[0]?.actionableSteps?.slice(0, 3) || [],
-      industryTrends:
-        roadmap.roadmap?.phases?.[0]?.industryTrends || "No data available",
-    }));
 
-    res.json({ totalRoadmaps: roadmaps.length, formattedRoadmaps });
+    let userTotalCompleted = 0; // total completed across all roadmaps
+    let userTotalTopics = 0; // total topics across all roadmaps
+
+    const formattedRoadmaps = roadmaps.map((roadmap) => {
+      const phases = roadmap.roadmap?.phases || [];
+
+      let totalTopics = 0;
+      let completedTopics = 0;
+
+      phases.forEach((phase) => {
+        const actionableSteps = phase.actionableSteps || [];
+        const completedSteps = phase.completedSteps || [];
+
+        totalTopics += actionableSteps.length;
+        completedTopics += completedSteps.length;
+
+        // also count quiz completion if applicable
+        if (phase.quizCompleted) completedTopics += 1;
+      });
+
+      userTotalCompleted += completedTopics;
+      userTotalTopics += totalTopics;
+
+      return {
+        id: roadmap._id,
+        title: roadmap.roadmap?.title,
+        author: roadmap.userName,
+        createdAt: roadmap.createdAt,
+        keySkills:
+          roadmap.roadmap?.phases?.[0]?.actionableSteps
+            ?.slice(0, 3)
+            ?.map((s) => s.title || s) || [],
+        industryTrends:
+          roadmap.roadmap?.phases?.[0]?.industryTrends || "No data available",
+
+        totalTopics,
+        completedTopics,
+      };
+    });
+
+    res.json({
+      totalRoadmaps: roadmaps.length,
+      formattedRoadmaps,
+      userTotalCompleted,
+      userTotalTopics,
+    });
   } catch (error) {
     res.status(500).json({
       message: "Error fetching user roadmaps",
@@ -75,7 +106,6 @@ router.get("/last-three/:userId", async (req, res) => {
         .status(404)
         .json({ message: "No roadmaps found for this user" });
     }
- 
 
     const formattedRoadmaps = lastThreeRoadmaps.map((roadmap) => ({
       id: roadmap._id,
@@ -86,7 +116,6 @@ router.get("/last-three/:userId", async (req, res) => {
       industryTrends:
         roadmap.roadmap.phases[0]?.industryTrends || "No data available",
     }));
-    
 
     res.json(formattedRoadmaps);
   } catch (error) {

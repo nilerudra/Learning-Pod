@@ -14,7 +14,6 @@ export default function PodList() {
 
   useEffect(() => {
     const fetchUserPods = async () => {
-      console.log("Full URL:", `${apiGeneral.userPods}${userId}`);
       try {
         const response = await axios.get(`${apiGeneral.userPods}${userId}`);
         setUserPods(response.data);

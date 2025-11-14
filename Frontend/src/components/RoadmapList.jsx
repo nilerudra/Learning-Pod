@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { apiGeneral } from "../utils/urls";
 
 export default function RoadmapList() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function RoadmapList() {
     const fetchRoadmaps = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/roadmap/last-three/${userId}`
+          `${apiGeneral.lastThreeRoadmap}${userId}`
         );
         setCareerPaths(response.data);
       } catch (error) {
@@ -30,13 +31,15 @@ export default function RoadmapList() {
 
   const handleRoadmapClick = async (id) => {
     try {
-      // ✅ Fetch full roadmap details
-      const response = await axios.get(`http://localhost:8000/api/roadmap/${id}`);
+      // Fetching full roadmap details
+      // const response = await axios.get(
+      //   `http://localhost:8000/api/roadmap/${id}`
+      // );
 
-      // ✅ Store the full roadmap in localStorage or pass via navigate
-      localStorage.setItem("selectedRoadmap", JSON.stringify(response.data));
+      // // Store the full roadmap in localStorage or pass via navigate
+      // localStorage.setItem("selectedRoadmap", JSON.stringify(response.data));
 
-      // ✅ Redirect to detailed roadmap page
+      // Redirect to detailed roadmap page
       navigate(`/roadmap/${id}`);
     } catch (error) {
       console.error("Error fetching full roadmap:", error);
@@ -61,7 +64,7 @@ export default function RoadmapList() {
               key={path.id}
               whileHover={{ scale: 1.05 }}
               className="cursor-pointer bg-transparent border-2 border-gray-300 dark:border-gray-700 rounded-xl p-6 shadow-md hover:shadow-lg transition-all"
-              onClick={() => handleRoadmapClick(path.id)} // ✅ Click handler
+              onClick={() => handleRoadmapClick(path.id)}
             >
               <h3 className="text-xl font-semibold bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent mb-2">
                 {path.title}

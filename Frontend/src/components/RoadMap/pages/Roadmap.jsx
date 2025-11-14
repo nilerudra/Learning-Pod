@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 
 const Roadmap = () => {
-  const { id } = useParams(); // optional roadmap document id in URL
-  const [roadmapData, setRoadmapData] = useState(null); // nested roadmap object (what your UI expects)
-  const [roadmapId, setRoadmapId] = useState(null); // MongoDB document _id
+  const { id } = useParams();
+  const [roadmapData, setRoadmapData] = useState(null);
+  const [roadmapId, setRoadmapId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quizEligibility, setQuizEligibility] = useState({});
@@ -23,51 +23,46 @@ const Roadmap = () => {
         setError(null);
 
         const url = id
-          ? `http://localhost:8000/api/roadmap/full/${id}`
-          : `http://localhost:8000/api/roadmap/${userId}`;
+          ? `https://learning-pod-e3wo.onrender.com/api/roadmap/full/${id}`
+          : `https://learning-pod-e3wo.onrender.com/api/roadmap/${userId}`;
 
         const res = await axios.get(url);
         const data = res.data;
 
-        // data shape possibilities:
-        // 1) full doc: { _id, userId, userName, roadmap: { ... } }
-        // 2) array of full docs (for /:userId): [ { _id, roadmap: { ... } }, ... ]
-        // 3) nested roadmap only (if backend returned roadmap directly) - handle but rare
-
         let doc = null;
         if (Array.isArray(data)) {
-          doc = data[0]; // latest roadmaps route returns array
+          doc = data[0];
         } else {
           doc = data;
         }
 
         if (!doc) throw new Error("No roadmap returned from API");
 
-        // If doc has .roadmap (full doc) use that, else if doc itself looks like roadmap, use it
         let nestedRoadmap = null;
         if (doc.roadmap) {
           nestedRoadmap = doc.roadmap;
           setRoadmapId(doc._id || null);
         } else if (doc.phases) {
-          // doc already is the nested roadmap (no _id)
           nestedRoadmap = doc;
-          setRoadmapId(null); // backend id unknown in this case
+          setRoadmapId(null);
         } else {
           throw new Error("Unexpected roadmap structure from server");
         }
 
-        // Set UI state
         setRoadmapData(nestedRoadmap);
 
-        // init quiz eligibility
         const eligibility = {};
         (nestedRoadmap.phases || []).forEach((phase, idx) => {
-          eligibility[idx] = (phase.completedSteps?.length || 0) === (phase.actionableSteps?.length || 0);
+          eligibility[idx] =
+            (phase.completedSteps?.length || 0) ===
+            (phase.actionableSteps?.length || 0);
         });
         setQuizEligibility(eligibility);
       } catch (err) {
         console.error("fetchRoadmap error:", err.response?.data || err.message);
-        setError(err.response?.data?.message || err.message || "Error fetching roadmap");
+        setError(
+          err.response?.data?.message || err.message || "Error fetching roadmap"
+        );
       } finally {
         setLoading(false);
       }
@@ -77,30 +72,33 @@ const Roadmap = () => {
   }, [id, userId]);
 
   // Save progress to backend: requires roadmapId to exist
-  const saveProgress = async (phaseIndex, completedSteps, quizCompleted = false) => {
+  const saveProgress = async (
+    phaseIndex,
+    completedSteps,
+    quizCompleted = false
+  ) => {
     if (!roadmapId) {
-      console.warn("No roadmapId available — cannot save progress. roadmapId:", roadmapId);
+      console.warn(
+        "No roadmapId available — cannot save progress. roadmapId:",
+        roadmapId
+      );
       return;
     }
 
     try {
       await axios.post(
-        `http://localhost:8000/api/roadmap/progress/${roadmapId}`,
+        `https://learning-pod-e3wo.onrender.com/api/roadmap/progress/${roadmapId}`,
         { phaseIndex, completedSteps, quizCompleted },
         { headers: { "Content-Type": "application/json" } }
       );
-      // optionally show a toast or set saved flag here
-      // console.log("Saved progress for phase", phaseIndex);
     } catch (err) {
       console.error("saveProgress error:", err.response?.data || err.message);
     }
   };
 
-  // Toggle completion for a step (works with roadmapData.phases)
   const toggleStepCompletion = (phaseIndex, stepIndex) => {
-    if (!roadmapData?.phases) return; // defensive
+    if (!roadmapData?.phases) return;
 
-    // Immutable update: copy roadmapData and phases
     const newRoadmap = {
       ...roadmapData,
       phases: roadmapData.phases.map((p) => ({ ...p })),
@@ -109,30 +107,38 @@ const Roadmap = () => {
     const phase = newRoadmap.phases[phaseIndex];
     if (!phase) return;
 
-    // ensure completedSteps exists and is a copy
-    phase.completedSteps = Array.isArray(phase.completedSteps) ? [...phase.completedSteps] : [];
+    phase.completedSteps = Array.isArray(phase.completedSteps)
+      ? [...phase.completedSteps]
+      : [];
 
     const pos = phase.completedSteps.indexOf(stepIndex);
     if (pos === -1) phase.completedSteps.push(stepIndex);
     else phase.completedSteps.splice(pos, 1);
 
-    // set updated roadmapData (nested object)
     setRoadmapData(newRoadmap);
 
-    // update eligibility
     const newEligibility = { ...quizEligibility };
-    newEligibility[phaseIndex] = phase.completedSteps.length === (phase.actionableSteps?.length || 0);
+    newEligibility[phaseIndex] =
+      phase.completedSteps.length === (phase.actionableSteps?.length || 0);
     setQuizEligibility(newEligibility);
 
-    // Debounce save to backend (if we have roadmapId)
-    if (progressTimers.current[phaseIndex]) clearTimeout(progressTimers.current[phaseIndex]);
+    if (progressTimers.current[phaseIndex])
+      clearTimeout(progressTimers.current[phaseIndex]);
     progressTimers.current[phaseIndex] = setTimeout(() => {
-      saveProgress(phaseIndex, phase.completedSteps, newEligibility[phaseIndex]);
+      saveProgress(
+        phaseIndex,
+        phase.completedSteps,
+        newEligibility[phaseIndex]
+      );
     }, 1500);
   };
 
   const calculatePhaseProgress = (phase) =>
-    Math.round(((phase.completedSteps?.length || 0) / (phase.actionableSteps?.length || 1)) * 100);
+    Math.round(
+      ((phase.completedSteps?.length || 0) /
+        (phase.actionableSteps?.length || 1)) *
+        100
+    );
 
   const calculateOverallProgress = () => {
     if (!roadmapData?.phases) return 0;
@@ -147,13 +153,18 @@ const Roadmap = () => {
 
   const handleCreatePod = (phaseIndex) => {
     if (!roadmapData?.phases) return;
-    alert(`Creating learning pod for: ${roadmapData.phases[phaseIndex].phaseName}`);
+    alert(
+      `Creating learning pod for: ${roadmapData.phases[phaseIndex].phaseName}`
+    );
   };
 
   const handleLearnNow = (phaseIndex) => {
     if (!roadmapData?.phases) return;
     navigate(`/learn/${phaseIndex}`, {
-      state: { phaseData: roadmapData.phases[phaseIndex], phaseName: roadmapData.phases[phaseIndex].phaseName },
+      state: {
+        phaseData: roadmapData.phases[phaseIndex],
+        phaseName: roadmapData.phases[phaseIndex].phaseName,
+      },
     });
   };
 
@@ -167,7 +178,6 @@ const Roadmap = () => {
     });
   };
 
-  // Loading / error UI
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen text-white">
@@ -175,31 +185,52 @@ const Roadmap = () => {
       </div>
     );
 
-  if (error) return <div className="text-center text-red-500 text-2xl font-semibold p-10">{error}</div>;
+  if (error)
+    return (
+      <div className="text-center text-red-500 text-2xl font-semibold p-10">
+        {error}
+      </div>
+    );
 
-  if (!roadmapData) return <div className="text-center text-gray-400 text-xl">No roadmap data available.</div>;
+  if (!roadmapData)
+    return (
+      <div className="text-center text-gray-400 text-xl">
+        No roadmap data available.
+      </div>
+    );
 
   // UI uses roadmapData (nested) as before
   return (
-    <div className="min-h-screen bg-transparent text-white p-6">
-      <motion.div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent">
+    <div className="min-h-screen  text-white px-4 py-6 overflow-x-hidden">
+      <motion.div className="max-w-4xl w-full mx-auto">
+        {/* Heading */}
+        <h1
+          className="md:text-5xl text-3xl font-bold mb-4 
+      bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 
+      bg-clip-text text-transparent"
+        >
           Your Learning Roadmap
         </h1>
 
-        <p className="text-gray-400 mb-6">{roadmapData.overview}</p>
+        <p className="md:text-sm text-xs text-gray-400 mb-6">
+          {roadmapData.overview}
+        </p>
 
         {/* Overall Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-semibold">Overall Progress</h2>
-            <span className="bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent font-semibold">
+        <div className="mb-8 bg-[#111827]/60 p-4 rounded-xl border border-gray-700 backdrop-blur-md shadow-lg">
+          <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+            <h2 className="text-lg font-semibold">Overall Progress</h2>
+            <span
+              className="bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 
+          bg-clip-text text-transparent font-semibold"
+            >
               {calculateOverallProgress()}%
             </span>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+
+          <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden">
             <motion.div
-              className="bg-blue-500 h-4"
+              className="h-4 bg-gradient-to-r from-purple-500 to-blue-500"
               initial={{ width: "0%" }}
               animate={{ width: `${calculateOverallProgress()}%` }}
               transition={{ duration: 1 }}
@@ -207,83 +238,157 @@ const Roadmap = () => {
           </div>
         </div>
 
-        {/* Phases */}
+        {/* PHASES */}
         {roadmapData.phases.map((phase, idx) => (
-          <motion.div key={idx} className="mb-12 p-4 border border-gray-700 rounded-lg shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold text-teal-600">{phase.phaseName}</h2>
-              <div className="flex space-x-3">
-                <button onClick={() => handleCreatePod(idx)} className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition">
+          <motion.div
+            key={idx}
+            className="mb-10 p-5 rounded-2xl border border-gray-700 
+        bg-[#111827]/60 backdrop-blur-md shadow-xl"
+          >
+            {/* Phase Header */}
+            <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
+              <h2 className="text-xl font-semibold text-purple-400">
+                {phase.phaseName}
+              </h2>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleCreatePod(idx)}
+                  className="px-4 py-1.5 rounded-md text-sm font-medium
+              bg-gradient-to-r from-purple-600 to-purple-700 hover:opacity-80 transition"
+                >
                   Create Pod
                 </button>
-                <button onClick={() => handleLearnNow(idx)} className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition">
+
+                <button
+                  onClick={() => handleLearnNow(idx)}
+                  className="px-4 py-1.5 rounded-md text-sm font-medium
+              bg-gradient-to-r from-green-600 to-green-700 hover:opacity-80 transition"
+                >
                   Learn Now
                 </button>
               </div>
             </div>
 
-            <p className="text-gray-400 mb-4">{phase.description}</p>
+            <p className="text-gray-400 md:text-sm text-xs mb-4">
+              {phase.description}
+            </p>
 
-            {/* Phase progress */}
-            <div className="mb-4">
+            {/* Phase Progress */}
+            <div className="mb-5">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-lg font-semibold">Phase Progress</h4>
-                <span className="text-teal-400 font-semibold">{calculatePhaseProgress(phase)}%</span>
+                <h4 className="text-md font-semibold">Phase Progress</h4>
+                <span className="text-teal-400 font-semibold">
+                  {calculatePhaseProgress(phase)}%
+                </span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-                <motion.div className="bg-teal-500 h-3" initial={{ width: "0%" }} animate={{ width: `${calculatePhaseProgress(phase)}%` }} transition={{ duration: 1 }} />
+
+              <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
+                <motion.div
+                  className="h-3 bg-gradient-to-r from-teal-500 to-teal-400"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${calculatePhaseProgress(phase)}%` }}
+                  transition={{ duration: 1 }}
+                />
               </div>
             </div>
 
-            {/* Actionable steps */}
+            {/* Steps */}
             <h4 className="font-bold mb-2">Actionable Steps:</h4>
             <ul className="space-y-2">
               {phase.actionableSteps.map((step, stepIdx) => (
-                <li key={stepIdx} className="flex items-center space-x-3">
-                  <input type="checkbox" className="w-5 h-5 cursor-pointer accent-teal-500" checked={phase.completedSteps?.includes(stepIdx)} onChange={() => toggleStepCompletion(idx, stepIdx)} />
-                  <span className={phase.completedSteps?.includes(stepIdx) ? "line-through text-gray-400" : "text-gray-400"}>{step}</span>
+                <li key={stepIdx} className="flex items-start space-x-2">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 accent-purple-500 cursor-pointer"
+                    checked={phase.completedSteps?.includes(stepIdx)}
+                    onChange={() => toggleStepCompletion(idx, stepIdx)}
+                  />
+
+                  <span
+                    className={`text-gray-300 md:text-sm text-xs ${
+                      phase.completedSteps?.includes(stepIdx)
+                        ? "line-through"
+                        : ""
+                    }`}
+                  >
+                    {step}
+                  </span>
                 </li>
               ))}
             </ul>
 
-            {/* Quiz button */}
+            {/* Quiz */}
             {quizEligibility[idx] && (
-              <div className="mt-4 flex justify-end">
-                <button onClick={() => handleTakeQuiz(idx)} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition w-[40%] text-center">
-                  Take Quiz
-                </button>
-              </div>
+              <button
+                onClick={() => handleTakeQuiz(idx)}
+                className="w-full mt-5 px-4 py-2 rounded-md font-medium
+            bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-80 transition"
+              >
+                Take Quiz
+              </button>
             )}
 
-            {/* Recommended courses */}
+            <hr className="border-gray-700 my-5" />
+
+            {/* Recommended Courses */}
             {phase.recommendedCourses && (
               <>
-                <h4 className="font-bold mt-4">Recommended Courses:</h4>
-                <ul className="space-y-2">
+                <h4 className="font-bold mb-3">Recommended Courses:</h4>
+                <ul className="space-y-3">
                   {phase.recommendedCourses.map((course, i) => (
-                    <li key={i} className="border p-3 rounded-md border-gray-700">
-                      <a href={course.link} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 bg-clip-text text-transparent font-semibold">
+                    <li
+                      key={i}
+                      className="p-3 rounded-lg border border-gray-700 bg-[#0f172a]"
+                    >
+                      <a
+                        href={course.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold bg-gradient-to-r from-purple-400 to-blue-400 
+                    bg-clip-text text-transparent"
+                      >
                         {course.title}
                       </a>
-                      <p className="text-gray-400 text-sm">{course.platform} | {course.duration} | {course.price}</p>
+
+                      <p className="text-gray-400 text-xs mt-1">
+                        {course.platform} | {course.duration} | {course.price}
+                      </p>
                     </li>
                   ))}
                 </ul>
+
+                <hr className="border-gray-700 my-5" />
               </>
             )}
 
-            <h4 className="font-bold mt-4">Industry Trends:</h4>
-            <p className="text-gray-400">{phase.industryTrends}</p>
+            {/* Industry Trends */}
+            <h4 className="font-bold">Industry Trends:</h4>
+            <p className="text-gray-300 text-sm mt-2">{phase.industryTrends}</p>
           </motion.div>
         ))}
 
-        {/* Additional resources */}
+        {/* Additional Resources */}
         {roadmapData.additionalResources && (
-          <motion.div className="p-4 border border-gray-700 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold text-yellow-400 mb-2">Additional Resources</h2>
-            <p className="text-gray-400"><strong>Mentorship:</strong> {roadmapData.additionalResources.mentorship}</p>
-            <p className="text-gray-400"><strong>Community Support:</strong> {roadmapData.additionalResources.communitySupport}</p>
-            <p className="text-gray-400"><strong>Job Search Strategies:</strong> {roadmapData.additionalResources.jobSearchStrategies}</p>
+          <motion.div className="p-5 rounded-2xl border border-gray-700 bg-[#111827]/60 shadow-xl backdrop-blur-md">
+            <h2 className="text-xl font-semibold text-yellow-400">
+              Additional Resources
+            </h2>
+
+            <p className="text-gray-300 text-sm mt-4">
+              <strong className="text-white">Mentorship:</strong>{" "}
+              {roadmapData.additionalResources.mentorship}
+            </p>
+
+            <p className="text-gray-300 text-sm mt-4">
+              <strong className="text-white">Community Support:</strong>{" "}
+              {roadmapData.additionalResources.communitySupport}
+            </p>
+
+            <p className="text-gray-300 text-sm mt-4">
+              <strong className="text-white">Job Search Strategies:</strong>{" "}
+              {roadmapData.additionalResources.jobSearchStrategies}
+            </p>
           </motion.div>
         )}
       </motion.div>

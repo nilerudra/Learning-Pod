@@ -52,7 +52,7 @@ export default function PodList({ onSelectPod }) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] rounded-xl bg-gradient-to-b from-[#111827] via-[#1f2937] to-[#0f172a] border-r border-gray-800 text-gray-200">
+    <div className="flex flex-col h-[calc(100vh-80px)] text-gray-200">
       {/* Search and Create Pod */}
       <div className="p-4 border-b border-gray-800 backdrop-blur-md">
         <div className="relative mb-4">
@@ -93,7 +93,7 @@ export default function PodList({ onSelectPod }) {
               <div
                 key={pod._id}
                 onClick={() => onSelectPod(pod)}
-                className="flex items-center p-4 cursor-pointer hover:bg-[#1e293b] transition-all duration-300 rounded-lg mx-2 my-1"
+                className="flex items-center px-4 py-2 cursor-pointer hover:bg-[#1e293b] transition-all duration-300 rounded-lg mx-2 my-1"
               >
                 <div className="overflow-hidden flex-shrink-0 mr-3">
                   {pod.photo ? (
@@ -103,7 +103,7 @@ export default function PodList({ onSelectPod }) {
                       className="w-12 h-12 rounded-full object-cover border-2 border-gray-700"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-purple-600 text-white text-xl font-bold border-2 border-gray-700">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-purple-600 text-white text-xl font-semibold border-2 border-gray-700">
                       {getInitials(pod.pod_name)}
                     </div>
                   )}

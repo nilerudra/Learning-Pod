@@ -13,7 +13,6 @@ const Dashboard = () => {
   const handleClose = () => setOpen(false);
   const handleConfirm = () => {
     console.log("Confirmed!");
-    // Add your confirmation logic here
   };
 
   return (

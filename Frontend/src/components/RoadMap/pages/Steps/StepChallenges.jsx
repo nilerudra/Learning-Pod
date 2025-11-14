@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
+import { apiGeneral } from "../../../../utils/urls";
 
 const StepChallenges = ({ formData, setFormData }) => {
   const navigate = useNavigate();
@@ -25,11 +26,10 @@ const StepChallenges = ({ formData, setFormData }) => {
 
   const handleGenerateRoadmap = async () => {
     setIsLoading(true);
-    console.log(formData);
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/ai_generated_path",
+        `${apiGeneral.generateRoadmap}`,
         formData,
         {
           headers: {
@@ -37,6 +37,8 @@ const StepChallenges = ({ formData, setFormData }) => {
           },
         }
       );
+
+      console.log(response.data);
 
       setIsLoading(false);
       navigate("/roadmap");

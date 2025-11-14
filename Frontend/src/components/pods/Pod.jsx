@@ -17,7 +17,7 @@ export default function Pod() {
           w-full md:w-1/4  
           ${selectedPod ? "md:block hidden" : "block"} 
           overflow-y-auto
-          border-r border-gray-700
+          rounded-xl bg-gradient-to-b from-[#111827] via-[#1f2937] to-[#0f172a] border-r border-gray-800
         `}
       >
         <PodList onSelectPod={handleSelectPod} />

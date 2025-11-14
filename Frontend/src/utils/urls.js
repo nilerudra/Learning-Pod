@@ -16,6 +16,12 @@ const apiGeneral = {
   userPods: `${domain}/create/userPods/`,
 
   getResources: `${domain}/create/get-resource/`,
+
+  lastThreeRoadmap: `${domain}/api/roadmap/last-three/`,
+  getAllRoadmaps: `${domain}/api/roadmap/get-all/`,
+  getRoadmapData: `${domain}/api/roadmap/full`,
+
+  generateRoadmap: `${domain}/api/ai_generated_path`,
 };
 
 export { apiGeneral };

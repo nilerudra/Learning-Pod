@@ -3,6 +3,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProfileHeader from "./ProfileHeader";
+import { apiGeneral } from "../../utils/urls";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -10,23 +11,26 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const userId = localStorage.getItem("userId");
   const [totalRoadmaps, setTotalRoadmaps] = useState(0);
+  const [totalCompleted, setTotalComplete] = useState(0);
   const [visibleRoadmaps, setVisibleRoadmaps] = useState(3);
   const navigate = useNavigate();
 
-  // ✅ Fetch roadmaps
+  // Fetch roadmaps
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
 
     const fetchRoadmaps = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8000/api/roadmap/get-all/${userId}`
-        );
+        const res = await axios.get(`${apiGeneral.getAllRoadmaps}${userId}`);
+
+        console.log(res.data.formattedRoadmaps[0]);
 
         setRoadmaps(res.data.formattedRoadmaps || []);
         setTotalRoadmaps(res.data.totalRoadmaps);
-        console.log("Fetched roadmaps:", res.data.formattedRoadmaps);
+        setTotalComplete(res.data.userTotalCompleted);
+
+        // console.log("Fetched roadmaps:", res.data.formattedRoadmaps);
       } catch (error) {
         console.error("Error fetching user roadmaps:", error);
         setRoadmaps([]);
@@ -38,23 +42,25 @@ const Profile = () => {
     if (userId) fetchRoadmaps();
   }, [userId]);
 
-  // ✅ Handle click to open roadmap details
+  // Handle click to open roadmap details
   const handleRoadmapClick = async (id) => {
     try {
-      console.log("Fetching roadmap ID:", id);
+      // console.log("Fetching roadmap ID:", id);
       if (!id) {
         alert("Invalid roadmap ID!");
         return;
       }
 
-      const response = await axios.get(
-        `http://localhost:8000/api/roadmap/full/${id}`
-      );
+      // const response = await axios.get(
+      //   `http://localhost:8000/api/roadmap/full/${id}`
+      // );
 
-      // ✅ Save full roadmap details to localStorage
-      localStorage.setItem("selectedRoadmap", JSON.stringify(response.data));
+      // // console.log(response.data);
 
-      // ✅ Redirect to roadmap details page
+      // // Save full roadmap details to localStorage
+      // localStorage.setItem("selectedRoadmap", JSON.stringify(response.data));
+
+      // Redirect to roadmap details page
       navigate(`/roadmap/${id}`);
     } catch (error) {
       console.error("Error fetching full roadmap:", error);
@@ -64,7 +70,13 @@ const Profile = () => {
   return (
     <div className="p-8 text-white">
       {/* Header */}
-      {user && <ProfileHeader user={user} totalRoadmaps={totalRoadmaps} />}
+      {user && (
+        <ProfileHeader
+          user={user}
+          totalRoadmaps={totalRoadmaps}
+          totalCompleted={totalCompleted}
+        />
+      )}
 
       <div className="mt-10">
         <p className="text-2xl font-bold mb-8">
@@ -118,7 +130,6 @@ const Profile = () => {
               ))}
             </div>
 
-            {/* View More button */}
             {visibleRoadmaps < roadmaps.length && (
               <div className="flex justify-center mt-6">
                 <button
